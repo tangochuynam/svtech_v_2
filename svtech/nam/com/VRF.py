@@ -156,6 +156,10 @@ class VRF:
         self.static_routing = False
         self.bgp = False
         self.ospf = False
+        self.frr = False
+        self.exp_extcom = ''
+        self.imp_extcom = ''
+        self.description = ''
 
     @staticmethod
     def query_vrf_on_ifl():
@@ -236,6 +240,10 @@ class VRF:
             data.static_routing = row[5]
             data.bgp = row[6]
             data.ospf = row[7]
+            data.frr = row[12]
+            data.exp_extcom = row[13]
+            data.imp_extcom = row[14]
+            data.description = row[15]
             data.interface_unit = INTERFACE_UNIT.query_list_new_ifl_vrf(data.hostname, data.name)
             if data.dhcp_server:
                 data.list_dhcp = VRF.get_list_dhcp(data.name)

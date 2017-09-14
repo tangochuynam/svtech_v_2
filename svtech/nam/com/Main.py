@@ -30,7 +30,7 @@ class Main:
 
     def main(self):
 
-        # this is test for github work or not
+        # flag de tim interface dau xa
         flag_create_notation = False
         listRouter = Router.get_host_name()
         file_name_1 = "router_config_asr.conf"
@@ -66,10 +66,7 @@ class Main:
             list_bd_id_ip = router.get_list_bd_id_ip()
             #print ("list_bdid")
             #print (list_bd_id_ip)
-            # L3VPN
-            vrf_service_list = VRF.query_data(hostname)
-            vrfie_list = VRFIE.query_data(vrf_service_list)
-            list_all_extomm_from_VRFIE = VRFIE.get_all_extcomm(hostname)
+
             # interface
             list_bd_id = router.get_list_bdid()
             list_bd_id_l2vpn = router.get_list_bd_id_l2vpn()
@@ -86,6 +83,12 @@ class Main:
 
             list_policer = POLICER.query_policer(hostname)
             cfg_router = CFGROUTER().query_cfg_router(hostname, router.type)
+
+            # L3VPN
+            vrf_service_list = VRF.query_data(hostname)
+            vrfie_list = VRFIE.query_data(vrf_service_list)
+            list_all_extomm_from_VRFIE = VRFIE.get_all_extcomm(hostname)
+
             # get_list_acl
             list_acl = ACL.query_acl(hostname)
             # add new code in huawei
@@ -109,10 +112,9 @@ class Main:
             lst_bgp_huawei = BGP.query_bgp_HW(hostname)
 
             # for ifd in list_ifd:
-            #     if ifd.name == 'Vlanif':
-            #         for unit in ifd.list_unit:
-            #             print("Info UNIT ")
-            #             unit.showdata()
+            #     for unit in ifd.list_unit:
+            #         if unit.unit1 == 2410:
+            #             print(" unit_ip : " + str(unit.ip))
 
             event_time = "23:" + str(random.randint(0, 59)) + ":" + str(random.randint(0, 59)) + " +0700"
             VRF.writefile(vrf_service_list, l2vpn_list, l2vpn_list_local, vrfie_list,

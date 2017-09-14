@@ -79,19 +79,22 @@ class BGP:
         try:
             update_source = row[1]
             print ("update_source: " + update_source)
-            ifd = unit = ""
-            if 'Vlan' in update_source:
-                ifd = update_source[0:4]
-                unit = update_source[4:]
-            elif 'Looback' in update_source:
-                ifd = update_source[0:7]
-                unit = update_source[7:]
+            if update_source != '':
+                ifd = unit = ""
+                if 'Vlan' in update_source:
+                    ifd = update_source[0:4]
+                    unit = update_source[4:]
+                elif 'Looback' in update_source:
+                    ifd = update_source[0:7]
+                    unit = update_source[7:]
+                else:
+                    ifd, unit = update_source.split('.')
+                sql = "select IP from ifl where Hostname = '%s' and IFD = '%s' and Unit = '%s'" % (hostname, ifd, unit)
+                BGP.cursor.execute(sql)
+                temp_row = BGP.cursor.fetchall()
+                ip, subnet = temp_row[0][0].split()
             else:
-                ifd, unit = update_source.split('.')
-            sql = "select IP from ifl where Hostname = '%s' and IFD = '%s' and Unit = '%s'" % (hostname, ifd, unit)
-            BGP.cursor.execute(sql)
-            temp_row = BGP.cursor.fetchall()
-            ip, subnet = temp_row[0][0].split()
+                ip = ''
             return NEIGHBOR_PEER_AS(ip, row[0], row[2], row[3], row[4], row[5])
         except MySQLdb.Error, e:
             print (e)

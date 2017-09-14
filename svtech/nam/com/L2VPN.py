@@ -104,7 +104,7 @@ class L2VPN:
             L2VPN.router_type = router_type
             for bdid in list_bdid:
                 sql_query = " select Peer, VC_ID, Name, No_split, BK_Peer, MTU, VPN_ID, Meshgroup from l2vpn where Type = '%s' and HostName = '%s' and BD_ID = '%s' " \
-                            % ('vpls', hostname, bdid )
+                            % ('vpls', hostname, bdid)
                 L2VPN.cursor.execute(sql_query)
                 list_rows = L2VPN.cursor.fetchall()
                 # get list of interface_unit from IFL table and IFD table

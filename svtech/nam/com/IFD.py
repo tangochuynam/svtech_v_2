@@ -123,13 +123,16 @@ class IFD:
                     unit.ip = '1.1.1.1/31'
                     print('unnumbered lo0: ' + unit.ip)
                 else:
-                    host, subnet = network.strip().split()
-                    subnet_mask = host + '/' + subnet
-                    # print("subnet_mask: " + subnet_mask)
-                    network_ipv4 = ipaddr.IPv4Network(subnet_mask)
-                    # print("network: " + str(network_ipv4))
-                    unit.ip = str(network_ipv4)
-                    # check ',' and '-' in svlan and cvlan
+                    if 'lo0' not in network:
+                        host, subnet = network.strip().split()
+                        subnet_mask = host + '/' + subnet
+                        # print("subnet_mask: " + subnet_mask)
+                        network_ipv4 = ipaddr.IPv4Network(subnet_mask)
+                        # print("network: " + str(network_ipv4))
+                        unit.ip = str(network_ipv4)
+                        # check ',' and '-' in svlan and cvlan
+                    else:
+                        unit.ip = network
             svlan_temp = info[3]
             cvlan_temp = info[4]
             if (',' in svlan_temp) | ('-' in svlan_temp):
@@ -153,6 +156,8 @@ class IFD:
             unit.igmp = info[21]
             unit.vsi_encap = info[22]
             unit.unit = info[23]
+            unit.ff_out = info[24]
+            unit.dhcp_gw = info[25]
             # handle the flag_cos
             if unit.service_pol_in in IFD.list_policy_cos:
                 unit.flag_cos = True
@@ -162,7 +167,7 @@ class IFD:
 
             # only get the unit from IFD.list_unit_vlan_policer
             unit.get_spi_spo(IFD.list_unit_vlan_policer)
-            unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
+            #unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
             # flag_create_notation is used or not
             if IFD.flag_create_notation:
                 unit.get_list_unit_remote(ifd.name, IFD.hostname)
@@ -194,7 +199,8 @@ class IFD:
             sql = "select Unit1, Description, Service, SVLAN, CVLAN, Vlan_mapping, " \
                   "Vlan_translate, Vlan_map_svlan, Vlan_map_cvlan, Service_pol_in, Service_pol_out, " \
                   "MTU, BD_ID, IP, Split_horizon, FF_in, " \
-                  "MPLS, Admin_status, Switch_mode, IP_helper, VRF_Name, IGMP, VSI_encap, Unit " \
+                  "MPLS, Admin_status, Switch_mode, IP_helper, " \
+                  "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW " \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
@@ -203,7 +209,7 @@ class IFD:
             # filter nhung phan tu None trong list_unit_temp
             self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
             # bo sung vao list_unit truong hop loopback cho dhcp relay
-            self.insert_to_list_unit_dhcp_relay()
+            #self.insert_to_list_unit_dhcp_relay()
 
         except MySQLdb.Error, e:
             print (e)
@@ -216,6 +222,7 @@ class IFD:
                 unit.unit1 = helper.unit
                 unit.ip = helper.ip.split(' ')[0] + '/32'
                 unit.vrf_name = helper.vrf_name
+                unit.ip_helper = helper.ip_helper
                 self.list_unit.append(unit)
 
     def check_special_case(self, hostname):
@@ -312,6 +319,7 @@ class UNIT:
         self.flag_bd_id_l2vpn = False
         self.flag_cos = False
         self.ff_in = ""
+        self.ff_out = ''
         self.mpls = False
         self.admin_status = True
         self.switch_mode = ''
@@ -323,6 +331,7 @@ class UNIT:
         self.unit = ''
         self.hostname_remote = ''
         self.ifd = ''
+        self.ip_helper = ''
         self.list_unit_remote = []
 
     def get_bd_id_vlan(self, db, cursor, bd_id, hostname):

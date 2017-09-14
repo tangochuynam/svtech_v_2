@@ -33,6 +33,11 @@ class INTERFACE_UNIT:
         except MySQLdb.Error, e:
             print (e)
             INTERFACE_UNIT.db.rollback()
+
+    @staticmethod
+    def extract_data(list_rows, list_ifd):
+        return list(map(lambda x: INTERFACE_UNIT.change_unit1_interface_unit(x, list_ifd), list_rows))
+
     @staticmethod
     def query_data_new_ifl(hostname, ifd, unit, list_ifd):
         try:
@@ -78,9 +83,7 @@ class INTERFACE_UNIT:
         interface_unit.ip_helper_list = x[2].split(' ')
         return interface_unit
 
-    @staticmethod
-    def extract_data(list_rows, list_ifd):
-        return list(map(lambda x: INTERFACE_UNIT.change_unit1_interface_unit(x, list_ifd), list_rows))
+
 
     @staticmethod
     def change_unit1_interface_unit(x, list_ifd):
@@ -98,11 +101,12 @@ class IFL:
     db = Database.Database.db
     cursor = Database.Database.cursor
 
-    def __init__(self, ip="", unit="", bd_id="", vrf_name="" ):
+    def __init__(self, ip="", unit="", bd_id="", vrf_name="", ip_helper=""):
         self.ip = ip
         self.unit = unit
         self.bd_id = bd_id
         self.vrf_name = vrf_name
+        self.ip_helper = ip_helper
         # self.description = ""
         # self.service = ""
         # self.routing_type = ""
@@ -126,11 +130,11 @@ class IFL:
     @staticmethod
     def query_dhcp_relay(hostname):
         try:
-            sql = "select IP, Unit, BD_ID, VRF_Name from ifl" \
+            sql = "select IP, Unit, BD_ID, VRF_Name, IP_helper from ifl" \
                   " where Hostname = '%s' and IFD = 'Vlanif' and IP_helper != ''" % hostname
             IFL.cursor.execute(sql)
             rows = IFL.cursor.fetchall()
-            return list(map(lambda x: IFL(x[0], x[1], x[2], x[3]), rows))
+            return list(map(lambda x: IFL(x[0], x[1], x[2], x[3], x[4]), rows))
         except MySQLdb.Error, e:
             print (e)
             IFL.db.rollback()
