@@ -25,8 +25,10 @@ class Main:
         self.db = Database.Database.db
         # prepare a cursor object using cursor() method
         self.cursor = Database.Database.cursor
-        self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"
-        self.path_output = "/Users/tnhnam/Desktop/du an anh P/router_config"
+        self.path_input = r"C:\JNPR\Support\VnPT\10Provinces\Template"
+        self.path_output = r"C:\JNPR\Support\VnPT\10Provinces\Config_file"
+        #self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"
+        #self.path_output = "/Users/tnhnam/Desktop/du an anh P/router_config"
 
     def main(self):
 
