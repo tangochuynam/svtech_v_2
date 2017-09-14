@@ -71,7 +71,8 @@ class VRFWITHIPHEPLPER:
 
             vrf_with_helper = VRFWITHIPHEPLPER()
             vrf_with_helper.name = vrf
-            sql_helper = "select IP_helper from ifl where Hostname = '%s' and VRF_Name = '%s' group by IP_helper" \
+            sql_helper = "select IP_helper from ifl where Hostname = '%s' and VRF_Name = '%s' and IP_helper!='' " \
+                         "group by IP_helper" \
                          % (hostname, vrf)
             VRFWITHIPHEPLPER.cursor.execute(sql_helper)
             list_rows_helper = VRFWITHIPHEPLPER.cursor.fetchall()
