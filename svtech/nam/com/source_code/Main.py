@@ -1,21 +1,21 @@
-import Database
-import os
-from ACL import ACL
-from IFD import IFD
-from L2VPN import L2VPN
-from Policer import POLICER
-from Router import Router
-from L2VPN import NEIGHBOR
-from VRF import VRF
-from Server import Server
-from VRFIE import VRFIE
-from CFGROUTER import CFGROUTER
-from RouteMap import RouteMap
-from BGP import BGP
-from IFL import IFL
-from LSP import LSP
-import time
 import random
+import time
+
+import Database
+from ACL import ACL
+from BGP import BGP
+from CFGROUTER import CFGROUTER
+from IFD import IFD
+from IFL import IFL
+from L2VPN import L2VPN
+from L2VPN import NEIGHBOR
+from LSP import LSP
+from Policer import POLICER
+from RouteMap import RouteMap
+from Router import Router
+from Server import Server
+from VRF import VRF
+from VRFIE import VRFIE
 
 
 class Main:
@@ -25,10 +25,10 @@ class Main:
         self.db = Database.Database.db
         # prepare a cursor object using cursor() method
         self.cursor = Database.Database.cursor
-        self.path_input = r"C:\JNPR\Support\VnPT\10Provinces\Template"
-        self.path_output = r"C:\JNPR\Support\VnPT\10Provinces\Config_file"
-        #self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"
-        #self.path_output = "/Users/tnhnam/Desktop/du an anh P/router_config"
+        #self.path_input = r"C:\JNPR\Support\VnPT\10Provinces\Template"
+        #self.path_output = r"C:\JNPR\Support\VnPT\10Provinces\Config_file"
+        self.path_input = "configuration_template"
+        self.path_output = "configuration_created"
 
     def main(self):
 

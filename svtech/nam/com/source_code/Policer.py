@@ -1,5 +1,7 @@
 import MySQLdb
+
 import Database
+
 
 class POLICER:
     db = Database.Database.db

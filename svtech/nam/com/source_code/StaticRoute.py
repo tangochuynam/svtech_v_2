@@ -1,6 +1,8 @@
 import MySQLdb
 import ipaddress as ip
+
 import Database
+
 
 class NH_AD:
     def __init__(self, nh, ad):

@@ -1,5 +1,7 @@
 import MySQLdb
+
 import Database
+
 
 class NEIGHBOR_PEER_AS:
     def __init__(self, local_address_name="", peer="", remote_as="", bfd_interval="",

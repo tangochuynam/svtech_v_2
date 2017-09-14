@@ -1,5 +1,8 @@
 import MySQLdb
+
 import Database
+
+
 class Server:
     hostname = ""
     db = Database.Database.db

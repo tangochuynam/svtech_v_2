@@ -1,9 +1,11 @@
-import MySQLdb
 from itertools import groupby
-from jinja2 import Environment, FileSystemLoader
-from IFL import INTERFACE_UNIT
+
+import MySQLdb
 import re
+from jinja2 import Environment, FileSystemLoader
+
 import Database
+from IFL import INTERFACE_UNIT
 
 
 class PEER_L2VPN:
