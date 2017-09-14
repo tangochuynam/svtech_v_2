@@ -1,13 +1,15 @@
-import MySQLdb
-from IFL import INTERFACE_UNIT
-from jinja2 import Environment, FileSystemLoader
-from DHCP import DHCP
-import ipaddress as ip
-from StaticRoute import StaticRoute
-from BGP import BGP
 import datetime
+
+import MySQLdb
+import ipaddress as ip
 import re
+from jinja2 import Environment, FileSystemLoader
+
 import Database
+from BGP import BGP
+from DHCP import DHCP
+from IFL import INTERFACE_UNIT
+from StaticRoute import StaticRoute
 
 
 class SERVERGROUP:

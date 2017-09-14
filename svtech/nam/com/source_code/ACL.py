@@ -1,6 +1,7 @@
-import Database
-import ipaddress as ip
 import MySQLdb
+import ipaddress as ip
+
+import Database
 
 
 class ACL:
