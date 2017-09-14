@@ -23,19 +23,14 @@ class Main:
     def __init__(self):
         # open database connection
         self.db = Database.Database.db
-        self.fileList = os.listdir("/Users/tnhnam/Desktop/du an anh P/template")
         # prepare a cursor object using cursor() method
         self.cursor = Database.Database.cursor
         self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"
         self.path_output = "/Users/tnhnam/Desktop/du an anh P/router_config"
 
     def main(self):
-        """
-        for file_name in self.fileList:
-            l2vpn = L2VPN.query_data(self.db, self.cursor, 'name_1', 'hostname_1')
-            l2vpn.print_fields()
-            l2vpn.writefile(file_name, self.path_input, self.path_output)
-        """
+
+        # this is test for github work or not
         flag_create_notation = False
         listRouter = Router.get_host_name()
         file_name_1 = "router_config_asr.conf"
