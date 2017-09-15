@@ -30,6 +30,8 @@ class StaticRoute:
             sql = "select Net from static_route where Hostname = '%s' and VRF_Name = '%s' group by Net" % (hostname, vrf_name)
             StaticRoute.cursor.execute(sql)
             list_rows = StaticRoute.cursor.fetchall()
+            #print 'VRF_Name:',vrf_name
+            #print list_rows
             list_group_net = list(map(lambda x: x[0], list_rows))
             list_static_route = StaticRoute.extract_data(hostname, vrf_name, list_group_net)
             return list_static_route
