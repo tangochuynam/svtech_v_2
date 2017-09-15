@@ -3727,6 +3727,17 @@ class-of-service {
                 /* unit 2410 VOD-ICMP-IP  */
                 
 			}
+            irb {
+                unit 2610 {
+                    no-default;
+                }
+                unit 2710 {
+                    no-default;
+                }
+                unit 2810 {
+                    no-default;
+                }
+            }
     }
     routing-instances {
         L2* {
