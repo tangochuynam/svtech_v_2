@@ -47,8 +47,10 @@ class INTERFACE_UNIT:
                    "on ifl.IFD = ifd.Name and ifl.Hostname = ifd.Hostname "
                    "where ifl.Hostname='%s' and ifl.IFD='%s' and ifl.Unit = '%s';") % \
                   (hostname, ifd, unit)
+            #print 'Sql:',sql
             INTERFACE_UNIT.cursor.execute(sql)
             row = INTERFACE_UNIT.cursor.fetchall()
+            #print row
             if len(row) > 0:
                 mx_ifd_temp = row[0][0]
                 #print ("name_mx_ifd: " + mx_ifd_temp)
