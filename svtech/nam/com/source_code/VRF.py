@@ -71,6 +71,7 @@ class VRFWITHIPHEPLPER:
 
             vrf_with_helper = VRFWITHIPHEPLPER()
             vrf_with_helper.name = vrf
+            #Update last night
             sql_helper = "select IP_helper from ifl where Hostname = '%s' and VRF_Name = '%s' and IP_helper!='' " \
                          "group by IP_helper" \
                          % (hostname, vrf)
