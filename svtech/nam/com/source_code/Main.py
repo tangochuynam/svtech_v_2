@@ -54,7 +54,7 @@ class Main:
         list_asr = ['ASR9912-TBI-P-01','ASR9912-TBI-P-02','ASR9912-HBT-P-01','ASR9912-HBT-P-02','ASR9912-GDI-P-01','ASR9912-GDI-P-02']
         check_continute = 'y'
 
-        for hostname in ['LDG00DTG']:
+        for hostname in ['LDG04NGA', 'LDG03THA', 'LDG00DTG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -63,7 +63,6 @@ class Main:
             lst_log_server = Server.get_list_log_server(hostname)
             list_lsp = LSP.query_data(hostname)
 
-            list_policy_cos = router.get_list_policy_cos()
             list_unit_vlan_policer = router.get_list_unit_vlan_policer()
             list_bd_id_ip = router.get_list_bd_id_ip()
             #print ("list_bdid")
@@ -76,12 +75,10 @@ class Main:
             iso_address = router.get_iso_address()
             # add new list_dhcp_relay to support for insert unit to IFD
             lst_dhcp_relay = IFL.query_dhcp_relay(hostname)
-            IFD.set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn, list_policy_cos,
+            IFD.set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn,
                                 list_unit_vlan_policer, list_bd_id_ip, router.type, lst_dhcp_relay)
 
-            list_ifd_all = IFD.query_data(hostname, flag_create_notation)
-
-            list_ifd = IFD.filter_vlan_cos(list_ifd_all)
+            list_ifd = IFD.query_data(hostname, flag_create_notation)
 
             list_policer = POLICER.query_policer(hostname)
             cfg_router = CFGROUTER().query_cfg_router(hostname, router.type)
@@ -89,7 +86,7 @@ class Main:
             # L3VPN
             vrf_service_list = VRF.query_data(hostname)
             vrfie_list = VRFIE.query_data(vrf_service_list)
-            list_all_extomm_from_VRFIE = VRFIE.get_all_extcomm(hostname)
+            list_all_extomm_from_VRFIE = VRFIE.get_all_extcomm(vrfie_list)
 
             # get_list_acl
             list_acl = ACL.query_acl(hostname)

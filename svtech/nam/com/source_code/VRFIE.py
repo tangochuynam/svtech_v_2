@@ -1,6 +1,6 @@
 import MySQLdb
 from jinja2 import Environment, FileSystemLoader
-
+from Utils import Utils
 import Database
 
 
@@ -8,7 +8,9 @@ class PSTERM:
     def __init__(self):
         self.term_name = ""
         self.acl = ""
-        self.extcomm = ""
+        self.protocol = ""
+        self.route_filter = ""
+        self.action = ""
 
 class VRFIE:
     db = Database.Database.db
@@ -30,34 +32,28 @@ class VRFIE:
     def query_data(vrf_service_list):
         try:
             print ("coming into SQL")
-            name_default = '%default%'
+
             list_vrfie = []
             for vrf in vrf_service_list:
                 hostname = vrf.hostname
                 vrf_name = vrf.name
                 vrf_name_out = vrf.name_out
                 # print ("hostname: " + hostname + " vrfname :" + vrf_name)
+
                 # select default export data from pair (hostname and vrf_name)
-                sql_query_df_exp = "select Extcomm from vrf_ie where Hostname = '%s' and VRF_Name = '%s' and Name like '%s' and IE = '%s'" \
-                            % (hostname, vrf_name, name_default, 'exp')
-                VRFIE.cursor.execute(sql_query_df_exp)
-                list_rows_df_exp = VRFIE.cursor.fetchall()
 
+                list_rows_df_exp = vrf.exp_extcom.split()
                 # select default import data from pair (hostname and vrf_name)
-
-                sql_query_df_imp = "select Extcomm from vrf_ie where Hostname = '%s' and VRF_Name = '%s' and Name like '%s' and IE = '%s'" \
-                            % (hostname, vrf_name, name_default, 'imp')
-                VRFIE.cursor.execute(sql_query_df_imp)
-                list_rows_df_imp = VRFIE.cursor.fetchall()
+                list_rows_df_imp = vrf.imp_extcom.split()
 
                 # select export map data from pair (hostname and vrf_name)
-
-                sql_query_exp = "select Name, Seq, ACL, Extcomm from vrf_ie where Hostname = '%s' and VRF_Name = '%s' and Name not like '%s'" \
-                            % (hostname, vrf_name, name_default)
+                sql_query_exp = "select Name, Seq, ACL, Protocol, Route_filter, Action from vrf_ie " \
+                                "where Hostname = '%s' and VRF_Name = '%s' " \
+                                % (hostname, vrf_name)
                 VRFIE.cursor.execute(sql_query_exp)
                 list_rows_exp = VRFIE.cursor.fetchall()
 
-                data = VRFIE.extract_data(list_rows_df_exp,list_rows_df_imp,list_rows_exp, hostname, vrf_name, vrf_name_out)
+                data = VRFIE.extract_data(list_rows_df_exp, list_rows_df_imp, list_rows_exp, hostname, vrf_name, vrf_name_out)
                 list_vrfie.append(data)
             return list_vrfie
         except MySQLdb.Error, e:
@@ -70,27 +66,28 @@ class VRFIE:
 
         vrfie = VRFIE(hostname, vrf_name, vrf_name_out)
         # cach viet functional programming
-        vrfie.list_extcomm_exp_default = list(map(lambda x: x[0], list_rows_df_exp))
-        vrfie.list_extcomm_imp_default = list(map(lambda x: x[0], list_rows_df_imp))
 
+        vrfie.list_extcomm_exp_default = list_rows_df_exp
+        vrfie.list_extcomm_imp_default = list_rows_df_imp
         if len(list_rows_exp) > 0:
             for row in list_rows_exp:
                 psterm = PSTERM()
                 psterm.term_name = row[0] + "_" + str(row[1])
                 psterm.acl = row[2]
-                psterm.extcomm = row[3]
+                psterm.protocol = row[3]
+                psterm.route_filter = Utils.convert_subnet(row[4])
+                psterm.action = row[5]
                 vrfie.list_extcomm_term_name_seq.append(psterm)
         return vrfie
 
     @staticmethod
-    def get_all_extcomm(hostname):
+    def get_all_extcomm(vrfie_list):
+        list_all_extcomm = []
         try:
-            # select all extcomm
-            sql_query_all_extcomm = "select Extcomm from vrf_ie where Hostname = '%s'" % hostname
-            VRFIE.cursor.execute(sql_query_all_extcomm)
-            list_rows_all_extcomm = VRFIE.cursor.fetchall()
-            list_temp = list(map(lambda x: x[0], list_rows_all_extcomm))
-            list_all_extcomm = list(filter(lambda x: len(x) > 0, list_temp))
+            for vrfie in vrfie_list:
+                list_all_extcomm += vrfie.list_extcomm_exp_default + vrfie.list_extcomm_imp_default
+            # merge element with the same value
+            list_all_extcomm = list(set(list_all_extcomm))
             return list_all_extcomm
         except MySQLdb.Error, e:
             print (e)

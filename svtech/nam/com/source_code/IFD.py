@@ -1,8 +1,8 @@
 import MySQLdb
 import ipaddr
 from jinja2 import Environment, FileSystemLoader
-
 import Database
+from Utils import Utils
 
 
 class IFD:
@@ -11,7 +11,6 @@ class IFD:
     iso_address = ""
     list_bd_id_igmp = []
     list_bd_id_l2vpn = []
-    list_policy_cos = []
     list_unit_vlan_policer = []
     list_bd_id_ip = []
     lst_dhcp_relay = []
@@ -39,45 +38,20 @@ class IFD:
         self.flag_default_l2circuit = False
         self.flag_default_vpls = False
         self.flag_svlan_untagged = False
-        self.flag_cos = False
         self.type = type_tmp
         self.list_unit = []
         self.admin_status = admin_status
         # add new attribute
         self.native_vlan = native_vlan
+        self.flag_core = False
+
 
     @staticmethod
-    def filter_vlan_cos(list_ifd_all):
-        ifd_vlans = []
-        if IFD.router_type == 'C76xx':
-            ifd_vlans = list(filter(lambda ifd: ifd.name == 'Vlan', list_ifd_all))
-        elif IFD.router_type == 'ASR9k':
-            ifd_vlans = list(filter(lambda ifd: ifd.name == 'BVI', list_ifd_all))
-        elif IFD.router_type == 'HW':
-            ifd_vlans = list(filter(lambda ifd: ifd.name == 'Vlanif', list_ifd_all))
-        ifd_vlan = ifd_vlans[0]
-        list_unit_flag_cos = list(filter(lambda unit: unit.flag_cos, ifd_vlan.list_unit))
-        list_bd_id_cos = list(map(lambda x: x.bd_id, list_unit_flag_cos))
-        #print ("list_bd_cos")
-        #print (list_bd_id_cos)
-
-        for ifd in list_ifd_all:
-            if (ifd.name != 'Vlan') & (ifd.name != 'Loopback') & (ifd.name != 'BVI') & (ifd.name != 'Vlanif') & (ifd.name != 'LoopBack'):
-                for unit_temp in ifd.list_unit:
-                    if unit_temp.bd_id in list_bd_id_cos:
-                        print ("ifd: " + ifd.name + " unit: " + str(unit_temp.unit1))
-                        unit_temp.flag_cos = True
-                        ifd.flag_cos = True
-        #print ("list_ifd_all:" + str(len(list_ifd_all)))
-        return list_ifd_all
-
-    @staticmethod
-    def set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn, list_policy_cos,
+    def set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn,
                             list_unit_vlan_policer, list_bd_id_ip, router_type, lst_dhcp_relay):
         IFD.iso_address = iso_address
         IFD.list_bd_id_igmp = list_bd_id_igmp
         IFD.list_bd_id_l2vpn = list_bd_id_l2vpn
-        IFD.list_policy_cos = list_policy_cos
         IFD.list_unit_vlan_policer = list_unit_vlan_policer
         IFD.list_bd_id_ip = list_bd_id_ip
         IFD.router_type = router_type
@@ -159,12 +133,8 @@ class IFD:
             unit.unit = info[23]
             unit.ff_out = info[24]
             unit.dhcp_gw = info[25]
-            # handle the flag_cos
-            if unit.service_pol_in in IFD.list_policy_cos:
-                unit.flag_cos = True
-                ifd.flag_cos = True
-                # print ('unit_with_flag_cos_true: ' + str(unit.unit1))
-            # print ("split_horizon:" + str(unit.split_horizon) + " unit: " + str(unit.unit1))
+            unit.classifier = Utils.change_name_classifier(info[26])
+            unit.df_classifier = Utils.change_name_classifier(info[27])
 
             # only get the unit from IFD.list_unit_vlan_policer
             unit.get_spi_spo(IFD.list_unit_vlan_policer)
@@ -172,6 +142,10 @@ class IFD:
             # flag_create_notation is used or not
             if IFD.flag_create_notation:
                 unit.get_list_unit_remote(ifd.name, IFD.hostname)
+            # set flag_core for ifd
+            if unit.service == 'CORE':
+                if ifd.flag_core == False:
+                    ifd.flag_core = True
             # print ("ifd: " + ifd.name + " mx_ifd: " + ifd.mx_ifd + " unit: " + str(unit.unit1) + " spi_in: " + unit.service_pol_in + " spo: " + unit.service_pol_out )
             return unit
         else:
@@ -201,7 +175,8 @@ class IFD:
                   "Vlan_translate, Vlan_map_svlan, Vlan_map_cvlan, Service_pol_in, Service_pol_out, " \
                   "MTU, BD_ID, IP, Split_horizon, FF_in, " \
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
-                  "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW " \
+                  "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
+                  "Classifier, DF_classifier " \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
@@ -334,6 +309,8 @@ class UNIT:
         self.ifd = ''
         self.ip_helper = ''
         self.list_unit_remote = []
+        self.classifier = ''
+        self.df_classifier = ''
 
     def get_bd_id_vlan(self, db, cursor, bd_id, hostname):
         try:
