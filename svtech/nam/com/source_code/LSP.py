@@ -64,8 +64,10 @@ class LSP:
             LSP.cursor.execute(sql)
             rows = LSP.cursor.fetchall()
             if len(rows) > 0:
-                lst_path_info = list(map(lambda x: Path_Info(x[0], x[1]), rows))
+                lst_path_info_tmp = list(map(lambda x: Path_Info(x[0], x[1]), rows))
+                lst_path_info = list(filter(lambda x: x.nh != self.dest,lst_path_info_tmp))
                 lst_path_info.sort(key=lambda x: x.index)
+
                 self.lst_path_pri = lst_path_info
             else:
                 raise ValueError('pri_path not found in path_detail in class LSP')
@@ -79,7 +81,8 @@ class LSP:
             LSP.cursor.execute(sql)
             rows = LSP.cursor.fetchall()
             if len(rows) > 0:
-                lst_path_info = list(map(lambda x: Path_Info(x[0], x[1]), rows))
+                lst_path_info_tmp = list(map(lambda x: Path_Info(x[0], x[1]), rows))
+                lst_path_info = list(filter(lambda x: x.nh != self.dest, lst_path_info_tmp))
                 lst_path_info.sort(key=lambda x: x.index)
                 self.lst_path_second = lst_path_info
             else:

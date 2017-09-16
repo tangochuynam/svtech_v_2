@@ -16,7 +16,7 @@ class POLICER:
     def query_policer(hostname):
         try:
             sql = "select Name, CIR from policy_map " \
-                  "where Hostname = '%s' and (Class = '' or Class = 'MATCH_ALL') and CIR > 0" % hostname
+                  "where Hostname = '%s' and Class = '' and CIR > 0" % hostname
             POLICER.cursor.execute(sql)
             list_rows = POLICER.cursor.fetchall()
             list_policer = list(map(lambda x: POLICER.get_policer(x), list_rows))

@@ -54,7 +54,7 @@ class Main:
         list_asr = ['ASR9912-TBI-P-01','ASR9912-TBI-P-02','ASR9912-HBT-P-01','ASR9912-HBT-P-02','ASR9912-GDI-P-01','ASR9912-GDI-P-02']
         check_continute = 'y'
 
-        for hostname in ['LDG04NGA', 'LDG03THA', 'LDG00DTG']:
+        for hostname in ['LDG00DTG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -122,7 +122,7 @@ class Main:
                           lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
                           event_time, lst_log_server, list_lsp, lst_bgp_huawei,
                           list_mgmt_acl,
-                          file_name_2, self.path_input, self.path_output, hostname)
+                          file_name_1, self.path_input, self.path_output, hostname)
             #check_continute = raw_input("Do you want to continute: ")
             #if check_continute != 'y':
             #    break
