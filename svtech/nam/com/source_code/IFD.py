@@ -44,6 +44,7 @@ class IFD:
         # add new attribute
         self.native_vlan = native_vlan
         self.flag_core = False
+        self.list_bd_id_dup = []
 
 
     @staticmethod
@@ -135,7 +136,11 @@ class IFD:
             unit.dhcp_gw = info[25]
             unit.classifier = Utils.change_name_classifier(info[26])
             unit.df_classifier = Utils.change_name_classifier(info[27])
-
+            unit.arp_exp = info[28]/60
+            if (unit.ip == '') and (info[29]):
+                unit.trust_1p = info[29]
+            if unit.bd_id in ifd.list_bd_id_dup:
+                unit.bd_dup_notation=True
             # only get the unit from IFD.list_unit_vlan_policer
             unit.get_spi_spo(IFD.list_unit_vlan_policer)
             #unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
@@ -176,11 +181,19 @@ class IFD:
                   "MTU, BD_ID, IP, Split_horizon, FF_in, " \
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
                   "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
-                  "Classifier, DF_classifier " \
+                  "Classifier, DF_classifier,ARP_exp,Trust_8021p " \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
             list_rows = IFD.cursor.fetchall()
+
+            sql = "select BD_ID,count(BD_ID) from ifl where hostname='%s' and " \
+                  "IFD = '%s' and BD_ID!='' group by BD_ID" % (IFD.hostname,self.name)
+            IFD.cursor.execute(sql)
+            list_rows_1 = IFD.cursor.fetchall()
+            #print list_rows_1
+            self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
+            #print self.list_bd_id_dup
             list_unit_temp = list(map(lambda x: IFD.convert_info_unit(x, self), list_rows))
             # filter nhung phan tu None trong list_unit_temp
             self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
@@ -311,6 +324,9 @@ class UNIT:
         self.list_unit_remote = []
         self.classifier = ''
         self.df_classifier = ''
+        self.arp_exp=0
+        self.trust_1p = False
+        self.bd_dup_notation=False
 
     def get_bd_id_vlan(self, db, cursor, bd_id, hostname):
         try:

@@ -14,6 +14,8 @@ from RouteMap import RouteMap
 from BGP import BGP
 from IFL import IFL
 from LSP import LSP
+from StaticRoute import StaticRoute
+from Policy_map import POLICY_MAP
 import time
 import random
 
@@ -54,7 +56,7 @@ class Main:
         list_asr = ['ASR9912-TBI-P-01','ASR9912-TBI-P-02','ASR9912-HBT-P-01','ASR9912-HBT-P-02','ASR9912-GDI-P-01','ASR9912-GDI-P-02']
         check_continute = 'y'
 
-        for hostname in ['LDG00DTG']:
+        for hostname in ['LDG04NGA','LDG03THA']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -80,9 +82,13 @@ class Main:
 
             list_ifd = IFD.query_data(hostname, flag_create_notation)
 
+            #bo sung ngay 18/9 :chua chay
+            #list_policy_map=POLICY_MAP.query_policy_map(hostname)
             list_policer = POLICER.query_policer(hostname)
             cfg_router = CFGROUTER().query_cfg_router(hostname, router.type)
 
+            #list static route global 18/9
+            list_static_global = StaticRoute.query_data(hostname,'')
             # L3VPN
             vrf_service_list = VRF.query_data(hostname)
             vrfie_list = VRFIE.query_data(vrf_service_list)
@@ -121,8 +127,8 @@ class Main:
                           cfg_router, list_acl, lst_route_map, lst_extcomm_bgp,
                           lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
                           event_time, lst_log_server, list_lsp, lst_bgp_huawei,
-                          list_mgmt_acl,
-                          file_name_1, self.path_input, self.path_output, hostname)
+                          list_mgmt_acl,list_static_global,
+                          file_name_2, self.path_input, self.path_output, hostname)
             #check_continute = raw_input("Do you want to continute: ")
             #if check_continute != 'y':
             #    break

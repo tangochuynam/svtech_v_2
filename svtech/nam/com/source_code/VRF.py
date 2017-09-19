@@ -268,7 +268,7 @@ class VRF:
     def writefile(vrf_service_list, l2vpn_list, l2vpn_list_local, vrfie_list, list_all_extomm_from_VRFIE,
                   neighbor_list, list_ifd, list_policer, cfg_router, list_acl, lst_route_map, lst_extcomm_bgp,
                   lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
-                  event_time, lst_log_server, list_lsp, lst_bgp_huawei,list_mgmt_acl,
+                  event_time, lst_log_server, list_lsp, lst_bgp_huawei,list_mgmt_acl,list_static_global,
                   file_name, path_input, path_output, hostname):
         template_env = Environment(autoescape=False, loader=FileSystemLoader(path_input), trim_blocks=False)
         routing_instances = {'service_list': vrf_service_list, 'l2vpn_list': l2vpn_list, 'l2vpn_list_local': l2vpn_list_local,
@@ -282,7 +282,8 @@ class VRF:
                              'lst_log_server': lst_log_server,
                              'list_lsp': list_lsp,
                              'lst_bgp_huawei': lst_bgp_huawei,
-                             'list_mgmt_acl': list_mgmt_acl}
+                             'list_mgmt_acl': list_mgmt_acl,
+                             'list_static_global': list_static_global}
         file_ouput = path_output + "/" + hostname + "-" + '-'.join(str(datetime.datetime.now()).split(":")) + ".txt"
         with open(file_ouput, 'w') as f:
             f_txt = template_env.get_template(file_name).render(routing_instances)
