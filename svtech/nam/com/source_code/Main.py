@@ -15,7 +15,6 @@ from BGP import BGP
 from IFL import IFL
 from LSP import LSP
 from StaticRoute import StaticRoute
-from Policy_map import POLICY_MAP
 import time
 import random
 
@@ -56,7 +55,7 @@ class Main:
         list_asr = ['ASR9912-TBI-P-01','ASR9912-TBI-P-02','ASR9912-HBT-P-01','ASR9912-HBT-P-02','ASR9912-GDI-P-01','ASR9912-GDI-P-02']
         check_continute = 'y'
 
-        for hostname in ['LDG04NGA','LDG03THA']:
+        for hostname in ['LDG00DTG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -80,13 +79,16 @@ class Main:
             IFD.set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn,
                                 list_unit_vlan_policer, list_bd_id_ip, router.type, lst_dhcp_relay)
 
-            list_ifd = IFD.query_data(hostname, flag_create_notation)
+            #list_ifd = IFD.query_data(hostname, flag_create_notation)
 
             #bo sung ngay 18/9 :chua chay
-            #list_policy_map=POLICY_MAP.query_policy_map(hostname)
+
             list_policer = POLICER.query_policer(hostname)
             cfg_router = CFGROUTER().query_cfg_router(hostname, router.type)
 
+            #move from line 82 to line 89 at Sep-22
+            dict_policy_map_used = {}
+            list_ifd = IFD.query_data(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used)
             #list static route global 18/9
             list_static_global = StaticRoute.query_data(hostname,'')
             # L3VPN
@@ -120,15 +122,26 @@ class Main:
             #     for unit in ifd.list_unit:
             #         if unit.unit1 == 2410:
             #             print(" unit_ip : " + str(unit.ip))
-
+            #print dict_policy_map_used
+            #for temp_policy in dict_policy_map_used:
+            #    print '---',temp_policy,'----'
+            #    dict_policy_map_used[temp_policy].showdata()
+            #    if len(dict_policy_map_used[temp_policy].mf_list)>0:
+            #        print 'MF list:'
+            #        for item_mf in dict_policy_map_used[temp_policy].mf_list:
+            #            item_mf.showdata()
+            #    if len(dict_policy_map_used[temp_policy].acl_list)>0:
+            #        print 'ACL list:'
+            #        for item_acl in dict_policy_map_used[temp_policy].acl_list:
+            #            item_acl.showdata()
             event_time = "23:" + str(random.randint(0, 59)) + ":" + str(random.randint(0, 59)) + " +0700"
             VRF.writefile(vrf_service_list, l2vpn_list, l2vpn_list_local, vrfie_list,
                           list_all_extomm_from_VRFIE, neighbor_list, list_ifd, list_policer,
                           cfg_router, list_acl, lst_route_map, lst_extcomm_bgp,
                           lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
                           event_time, lst_log_server, list_lsp, lst_bgp_huawei,
-                          list_mgmt_acl,list_static_global,
-                          file_name_2, self.path_input, self.path_output, hostname)
+                          list_mgmt_acl,list_static_global,dict_policy_map_used,
+                          file_name_1, self.path_input, self.path_output, hostname)
             #check_continute = raw_input("Do you want to continute: ")
             #if check_continute != 'y':
             #    break

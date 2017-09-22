@@ -3,7 +3,8 @@ import ipaddr
 from jinja2 import Environment, FileSystemLoader
 import Database
 from Utils import Utils
-
+import netaddr
+from CFGROUTER import POLICYMAP
 
 class IFD:
     db = Database.Database.db
@@ -59,7 +60,7 @@ class IFD:
         IFD.lst_dhcp_relay = lst_dhcp_relay
 
     @staticmethod
-    def query_data(hostname, flag_create_notation):
+    def query_data(hostname, flag_create_notation, dict_policy_map,dict_policy_map_used):
         try:
             IFD.hostname = hostname
             IFD.flag_create_notation = flag_create_notation
@@ -76,7 +77,7 @@ class IFD:
 
             for ifd in list_ifd:
                 #print("ifd_mxifd: " + ifd.mx_ifd)
-                ifd.insert_unit()
+                ifd.insert_unit(dict_policy_map, dict_policy_map_used)
 
             # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
             list_ifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_ifd), list_ifd))
@@ -156,6 +157,148 @@ class IFD:
         else:
             return None
 
+    @staticmethod
+    def find_mx_ifd(info,hostname):
+        try:
+
+            sql = "select IFD.mx_ifd,IFL.Unit1 from ifl inner join ifd on ifd.name=ifl.ifd and ifd.hostname=ifl.hostname " \
+                  "where (left('%s',position('.' in '%s')-1)= ifl.IFD) and " \
+                  "(right('%s',length('%s')-position('.' in '%s')) = " \
+                  "Convert(ifl.Unit,CHAR(45))) and ifl.hostname='%s'" % (info,info,info,info,info,hostname)
+            IFD.cursor.execute(sql)
+            list_rows = IFD.cursor.fetchall()
+            new_ifl=list_rows[0][0]+'.'+str(list_rows[0][1])
+            return new_ifl
+        except MySQLdb.Error, e:
+            print (e)
+            IFD.db.rollback()
+
+    @staticmethod
+    def insert_policy_map_used(tmp_unit, dict_policy_map, dict_policy_map_used):
+        tmp_policy_map = POLICYMAP()
+        if tmp_unit.service=='vpls':
+            #print 'Tao policy map cho vpls',tmp_unit.unit1 , tmp_unit.ifd
+            #print tmp_unit.ff_in, (tmp_unit.ff_in in dict_policy_map) , (tmp_unit.ff_in not in dict_policy_map_used)
+            if (tmp_unit.ff_in in dict_policy_map) and (tmp_unit.ff_in not in dict_policy_map_used):
+                #print 'Dang policy map cho vpls'
+                tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
+                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+                tmp_policy_map.df_lp = 'low'
+                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
+                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
+                tmp_policy_map.family_type = 'vpls'
+                dict_policy_map_used[tmp_unit.ff_in] = tmp_policy_map
+            if (tmp_unit.ff_out in dict_policy_map) and (tmp_unit.ff_out not in dict_policy_map_used):
+                tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
+                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+                tmp_policy_map.df_lp = 'low'
+                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
+                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
+                tmp_policy_map.family_type = 'vpls'
+                dict_policy_map_used[tmp_unit.ff_out] = tmp_policy_map
+        elif tmp_unit.service=='l2circuit':
+            #print 'Tao policy map cho l2circuit',tmp_unit.unit1 , tmp_unit.ifd
+            if (tmp_unit.ff_in in dict_policy_map) and (tmp_unit.ff_in not in dict_policy_map_used):
+                #print 'Dang tao policy map cho l2circuit'
+                tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
+                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+                tmp_policy_map.df_lp = 'low'
+                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
+                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
+                tmp_policy_map.family_type = 'l2circuit'
+                dict_policy_map_used[tmp_unit.ff_in] = tmp_policy_map
+            if (tmp_unit.ff_out in dict_policy_map) and (tmp_unit.ff_out not in dict_policy_map_used):
+                tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
+                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+                tmp_policy_map.df_lp = 'low'
+                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
+                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
+                tmp_policy_map.family_type = 'l2circuit'
+                dict_policy_map_used[tmp_unit.ff_out] = tmp_policy_map
+        else:
+            #print 'Tao policy map cho l3', tmp_unit.unit1, tmp_unit.ifd
+            if (tmp_unit.ff_in in dict_policy_map) and (tmp_unit.ff_in not in dict_policy_map_used):
+                print 'Dang tao policy map cho l3'
+                tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
+                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+                tmp_policy_map.df_lp = 'low'
+                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
+                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
+                tmp_policy_map.family_type = 'inet'
+                dict_policy_map_used[tmp_unit.ff_in] = tmp_policy_map
+            if (tmp_unit.ff_out in dict_policy_map) and (tmp_unit.ff_out not in dict_policy_map_used):
+                tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
+                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+                tmp_policy_map.df_lp = 'low'
+                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
+                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
+                tmp_policy_map.family_type = 'inet'
+                tmp_policy_map.showdata()
+                dict_policy_map_used[tmp_unit.ff_out] = tmp_policy_map
+
+    @staticmethod
+    def convert_info_unit1(info, ifd, dict_policy_map, dict_policy_map_used):
+
+        ip_helper_tmp = info[19]
+        if (ifd.name != 'Vlanif') | (ip_helper_tmp == ''):
+            unit = UNIT(info[0], info[1], info[2], info[3], info[4], info[5],
+                        info[6], info[7], info[8], info[9], info[10], info[11], info[12])
+            # convert ip
+            network = info[13]
+            if network != '':
+                unit.ip = UNIT.insert_list_ip(info,IFD.hostname)
+                #print ifd.name, unit.ip,network
+            svlan_temp = info[3]
+            cvlan_temp = info[4]
+            if (',' in svlan_temp) | ('-' in svlan_temp):
+                unit.svlan_list = ' '.join(svlan_temp.split(','))
+            if (',' in cvlan_temp) | ('-' in cvlan_temp):
+                unit.cvlan_list = ' '.join(cvlan_temp.split(','))
+
+            if (ifd.name != 'Vlan') & (ifd.name != 'Loopback') & (unit.bd_id != ''):
+                if unit.bd_id in IFD.list_bd_id_ip:
+                    unit.flag_bdid = False
+                if unit.unit1 == 525:
+                    print ("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
+
+            # add more attribute
+            
+            unit.split_horizon = info[14]
+            unit.ff_in = info[15]
+            unit.mpls = info[16]
+            unit.admin_status = info[17]
+            unit.switch_mode = info[18]
+            unit.vrf_name = info[20]
+            unit.igmp = info[21]
+            unit.vsi_encap = info[22]
+            unit.unit = info[23]
+            unit.ff_out = info[24]
+            unit.dhcp_gw = info[25]
+            unit.classifier = Utils.change_name_classifier(info[26])
+            unit.df_classifier = Utils.change_name_classifier(info[27])
+            unit.arp_exp = info[28] / 60
+            if (unit.ip == '') and (info[29]):
+                unit.trust_1p = info[29]
+            #print 'info[36]:',info[36]
+            unit.trust_upstream = info[36]
+            if unit.bd_id in ifd.list_bd_id_dup:
+                unit.bd_dup_notation = True
+            # only get the unit from IFD.list_unit_vlan_policer
+            unit.get_spi_spo(IFD.list_unit_vlan_policer)
+            # unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
+            # flag_create_notation is used or not
+            if IFD.flag_create_notation:
+                unit.get_list_unit_remote(ifd.name, IFD.hostname)
+            # set flag_core for ifd
+            if unit.service == 'CORE':
+                if ifd.flag_core == False:
+                    ifd.flag_core = True
+            IFD.insert_policy_map_used(unit, dict_policy_map, dict_policy_map_used)
+            # print ("ifd: " + ifd.name + " mx_ifd: " + ifd.mx_ifd + " unit: " + str(unit.unit1) + " spi_in: " + unit.service_pol_in + " spo: " + unit.service_pol_out )
+            return unit
+        else:
+            return None
+
     def get_new_ifd_with_flex_service(self, list_ifd):
         if self.parent_link != '':
             name = ""
@@ -170,7 +313,7 @@ class IFD:
             self.flex_service = parent_of_ifd[0].flex_service
         return self
 
-    def insert_unit(self):
+    def insert_unit(self, dict_policy_map, dict_policy_map_used):
         try:
             #print("insert_unit_to " + "ifd_mxifd: " + ifd.mx_ifd + " flag_default: " + str(ifd.flag_default) + " flag_l2circuit: "
             #      + str(ifd.flag_default_l2circuit) + " flag_vpls: " + str(ifd.flag_default_vpls)
@@ -181,7 +324,8 @@ class IFD:
                   "MTU, BD_ID, IP, Split_horizon, FF_in, " \
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
                   "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
-                  "Classifier, DF_classifier,ARP_exp,Trust_8021p " \
+                  "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
+                  "VRRP_reduce,Trust_upstream " \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
@@ -194,7 +338,7 @@ class IFD:
             #print list_rows_1
             self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
             #print self.list_bd_id_dup
-            list_unit_temp = list(map(lambda x: IFD.convert_info_unit(x, self), list_rows))
+            list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used), list_rows))
             # filter nhung phan tu None trong list_unit_temp
             self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
             # bo sung vao list_unit truong hop loopback cho dhcp relay
@@ -303,7 +447,8 @@ class UNIT:
         self.split_horizon = False
         self.svlan_list = ""
         self.cvlan_list = ""
-        self.ip = ""
+        #self.ip = ""
+        self.ip =[]
         self.flag_bdid = True
         self.flag_bd_id_l2vpn = False
         self.flag_cos = False
@@ -327,6 +472,70 @@ class UNIT:
         self.arp_exp=0
         self.trust_1p = False
         self.bd_dup_notation=False
+        self.trust_upstream = False
+
+    @staticmethod
+    def insert_list_ip(info,hostname):
+        temp_list_ip = info[13].split('/')
+        list_ip = list(map(lambda x: UNIT_IP(Utils.convert_ip(x)), temp_list_ip))
+        #print 'Kiem tra:',list_ip
+
+        if info[30]!='':
+            temp_list_group = info[30].split('/')
+            temp_list_vip = info[31].split('/')
+            temp_list_pri = info[32].split('/')
+            temp_list_holdtime = info[33].split('/')
+            temp_list_track = info[34].split('/')
+            temp_list_reduce = info[35].split('/')
+            #if info[0] == 2642:
+                #print temp_list_group,temp_list_vip,temp_list_pri,temp_list_holdtime,temp_list_track,temp_list_reduce
+            for item_vrrp in temp_list_group:
+                temp_vrrp_group = VRRP()
+                temp_vrrp_group.group_id = item_vrrp
+                temp_list_vip_filter = list(filter(lambda x: x.startswith(item_vrrp + '_'), temp_list_vip))
+                #print ' Gia tri vip filter:',temp_list_vip_filter
+                #print temp_list_vip_filter
+                #print temp_list_vip_filter
+                if len(temp_list_vip_filter) > 0:
+                    #print 'Dang xu ly:',temp_list_vip_filter[0].split('_')[1]
+                    temp_vrrp_group.vip.append(temp_list_vip_filter[0].split('_')[1])
+                #print 'Da xu ly:',temp_vrrp_group.group_id,temp_vrrp_group.vip
+                temp_list_pri_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_pri))
+                if len(temp_list_pri_filter)>0:
+                    temp_vrrp_group.vrrp_pri = temp_list_pri_filter[0].split('_')[1]
+                else:
+                    temp_vrrp_group.vrrp_pri = '100'
+                temp_list_hold_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_holdtime))
+                if len(temp_list_hold_filter) > 0:
+                    temp_vrrp_group.vrrp_holdtime = temp_list_hold_filter[0].split('_')[1]
+                else:
+                    temp_vrrp_group.vrrp_holdtime = '0'
+                temp_list_track_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_track))
+                if len(temp_list_track_filter) > 0:
+                    temp_vrrp_group.vrrp_track_intf = IFD.find_mx_ifd(temp_list_track_filter[0].split('_')[1],hostname)
+                temp_list_reduce_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_reduce))
+                if len(temp_list_reduce_filter) > 0:
+                    temp_vrrp_group.vrrp_reduce = temp_list_track_filter[0].split('_')[1]
+                for item_ip in list_ip:
+                    ip = netaddr.IPNetwork(item_ip.ip)
+                    #print 'IP:',ip
+                    #print 'Network:',ip.network
+                    #print 'Broadcast:',ip.broadcast
+                    #temp_vrrp_group.showdata()
+                    #print temp_list_vip
+                    for item_vip in temp_list_vip_filter:
+
+                        if (netaddr.IPAddress(item_vip.split('_')[1]) >= netaddr.IPAddress(ip.network)) \
+                                and (netaddr.IPAddress(item_vip.split('_')[1])< ip.broadcast):
+                            item_ip.vrrp_group.append(temp_vrrp_group)
+                            #print item_ip.ip
+                            #item_ip.vrrp_group
+
+           # for item_ip in list_ip:
+                #print item_ip.ip
+                #for item_group in item_ip.vrrp_group:
+                    #item_group.showdata()
+        return list_ip
 
     def get_bd_id_vlan(self, db, cursor, bd_id, hostname):
         try:
@@ -429,6 +638,27 @@ class UNIT:
             print (e)
             print ("in list unit remote helper")
             UNIT.db.rollback()
+
+    def showdata(self):
+        attrs = vars(self)
+        print ','.join("%s: %s" % item for item in attrs.items())
+
+
+class UNIT_IP:
+    def __init__(self, ip=''):
+        self.ip = ip
+        self.vrrp_group = []
+
+
+
+class VRRP:
+    def __init__(self):
+        self.group_id =''
+        self.vip = []
+        self.vrrp_pri = ''
+        self.vrrp_holdtime = 0
+        self.vrrp_track_intf = ''
+        self.vrrp_reduce = 0
 
     def showdata(self):
         attrs = vars(self)

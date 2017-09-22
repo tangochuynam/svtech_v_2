@@ -62,7 +62,8 @@ class BGP:
                     bgp.name_group = group
                 else:
                     bgp.name_group = "ext"
-                sql = "select Peer, Update_Source, Remote_AS, BFD_interval, BFD_multiplier, Import_policy from bgp" \
+                sql = "select Peer, Update_Source, Remote_AS, BFD_interval, BFD_multiplier, Import_policy, " \
+                      "Export_policy from bgp" \
                       " where Hostname = '%s' and VRF_Name = '%s' and Peer_Group = '%s'" \
                       % (hostname, vrf_name, group)
                 BGP.cursor.execute(sql)
