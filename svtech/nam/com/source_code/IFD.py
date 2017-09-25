@@ -46,7 +46,7 @@ class IFD:
         self.native_vlan = native_vlan
         self.flag_core = False
         self.list_bd_id_dup = []
-
+        self.flag_ccc = False
 
     @staticmethod
     def set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn,
@@ -336,13 +336,20 @@ class IFD:
             IFD.cursor.execute(sql)
             list_rows_1 = IFD.cursor.fetchall()
             #print list_rows_1
-            self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
-            #print self.list_bd_id_dup
-            list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used), list_rows))
-            # filter nhung phan tu None trong list_unit_temp
-            self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
-            # bo sung vao list_unit truong hop loopback cho dhcp relay
-            #self.insert_to_list_unit_dhcp_relay()
+            self.check_ccc_eth()
+            if self.flag_ccc:
+                self.list_unit = [UNIT()]
+            else:
+                self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
+                #print self.list_bd_id_dup
+
+                list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used), list_rows))
+                # filter nhung phan tu None trong list_unit_temp
+                self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
+                # bo sung vao list_unit truong hop loopback cho dhcp relay
+                #self.insert_to_list_unit_dhcp_relay()
+                #check special case (ccc)
+
 
         except MySQLdb.Error, e:
             print (e)
@@ -357,6 +364,19 @@ class IFD:
                 unit.vrf_name = helper.vrf_name
                 unit.ip_helper = helper.ip_helper
                 self.list_unit.append(unit)
+
+    def check_ccc_eth(self):
+        try:
+            sql_ccc_eth = "select IFD from ifl where Hostname = '%s' and IFD = '%s' and Service = 'ccc' " \
+                      % (IFD.hostname,self.name)
+            IFD.cursor.execute(sql_ccc_eth)
+            list_rows = IFD.cursor.fetchall()
+            if len(list_rows)>0:
+                self.flag_ccc = True
+
+        except MySQLdb.Error, e:
+            print (e)
+            IFD.db.rollback()
 
     def check_special_case(self, hostname):
         try:

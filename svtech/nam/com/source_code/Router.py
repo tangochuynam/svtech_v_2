@@ -89,6 +89,35 @@ class Router:
             print (e)
             Router.db.rollback()
 
+    def get_isis_export(self):
+        try:
+            sql = "select Redistribute from isis where hostname ='%s' " % self.hostname
+            Router.cursor.execute(sql)
+            list_rows = Router.cursor.fetchall()
+            if len(list_rows)>0:
+                list_tmp = list_rows[0][0].split('|')
+                print list_tmp
+                dict_exp = {'level-1': '', 'level-2': ''}
+                for item in list_tmp:
+                    if 'level-1' in item:
+                        if dict_exp['level-1']=='':
+                            dict_exp['level-1'] = item.split()[0]
+                        else:
+                            dict_exp['level-1'] = dict_exp['level-1'] + ' ' + item.split()[0]
+                    else:
+                        if dict_exp['level-2']=='':
+                            dict_exp['level-2'] = item.split()[0]
+                        else:
+                            dict_exp['level-2'] = dict_exp['level-2'] + ' ' + item.split()[0]
+                print dict_exp
+                return dict_exp
+            else:
+                return {}
+
+        except MySQLdb.Error, e:
+            print (e)
+            Router.db.rollback()
+
     def get_list_policy_cos(self):
         try:
             sql = "select Name from policy_map where hostname = '%s' and class ='class-default' and " \

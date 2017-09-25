@@ -55,7 +55,7 @@ class Main:
         list_asr = ['ASR9912-TBI-P-01','ASR9912-TBI-P-02','ASR9912-HBT-P-01','ASR9912-HBT-P-02','ASR9912-GDI-P-01','ASR9912-GDI-P-02']
         check_continute = 'y'
 
-        for hostname in ['LDG00DTG']:
+        for hostname in ['LDG03THA']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -74,6 +74,10 @@ class Main:
             list_bd_id_l2vpn = router.get_list_bd_id_l2vpn()
             list_bd_id_igmp = router.get_list_bd_id_igmp()
             iso_address = router.get_iso_address()
+
+            #23/9 isis export
+            dict_exp_isis = router.get_isis_export()
+
             # add new list_dhcp_relay to support for insert unit to IFD
             lst_dhcp_relay = IFL.query_dhcp_relay(hostname)
             IFD.set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn,
@@ -90,7 +94,7 @@ class Main:
             dict_policy_map_used = {}
             list_ifd = IFD.query_data(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used)
             #list static route global 18/9
-            list_static_global = StaticRoute.query_data(hostname,'')
+            list_static_global = StaticRoute.query_data(hostname, '')
             # L3VPN
             vrf_service_list = VRF.query_data(hostname)
             vrfie_list = VRFIE.query_data(vrf_service_list)
@@ -106,6 +110,8 @@ class Main:
             l2vpn_list = L2VPN.query_data(hostname, list_ifd, router.type)
             l2vpn_list_local = L2VPN.query_vlan_local(hostname, list_bd_id_ip)
 
+            #bo sung ngay 22/9
+            list_ccc = L2VPN.query_data_ccc(hostname,list_ifd,router.type)
             # RouteMap
             lst_route_map = RouteMap.query_data(hostname)
             lst_extcomm_bgp = RouteMap.get_lst_extcomm_bgp(hostname)
@@ -140,8 +146,8 @@ class Main:
                           cfg_router, list_acl, lst_route_map, lst_extcomm_bgp,
                           lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
                           event_time, lst_log_server, list_lsp, lst_bgp_huawei,
-                          list_mgmt_acl,list_static_global,dict_policy_map_used,
-                          file_name_1, self.path_input, self.path_output, hostname)
+                          list_mgmt_acl,list_static_global,dict_policy_map_used,list_ccc, dict_exp_isis,
+                          file_name_2, self.path_input, self.path_output, hostname)
             #check_continute = raw_input("Do you want to continute: ")
             #if check_continute != 'y':
             #    break

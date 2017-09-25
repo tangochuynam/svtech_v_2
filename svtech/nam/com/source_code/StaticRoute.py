@@ -61,6 +61,7 @@ class StaticRoute:
                     network_ipv4 = net.strip()
                 static_route = StaticRoute(str(network_ipv4))
                 list_rows = StaticRoute.cursor.fetchall()
+                #print list_rows
                 for row in list_rows:
                     temp_multi = 3
                     temp_min =10
@@ -72,6 +73,8 @@ class StaticRoute:
                        temp_min = row[3]
                     elif row[3] is None:
                         temp_min = 0
+                    #print 'Multi:',temp_multi
+                    #print 'Min_tx:',temp_min
                     nh_ad = NH_AD(row[0], row[1], temp_multi, temp_min)
                     static_route.list_nh_ad.append(nh_ad)
                 list_static_route.append(static_route)

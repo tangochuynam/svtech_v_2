@@ -133,6 +133,21 @@ class L2VPN:
             L2VPN.db.rollback()
 
     @staticmethod
+    def query_data_ccc(hostname, list_ifd, router_type):
+        try:
+            L2VPN.router_type = router_type
+            L2VPN.hostname = hostname
+            # print ("coming into SQL")
+            L2VPN.list_ifd = list_ifd
+            list_ccc = []
+            list_ccc = L2VPN.get_list_ccc(hostname)
+            return list_ccc
+        except MySQLdb.Error, e:
+            print (e)
+            # rollback in case there is any error
+            L2VPN.db.rollback()
+
+    @staticmethod
     def query_vlan_local(hostname, list_bd_id_ip):
         try:
             L2VPN.list_bd_id_ip = list_bd_id_ip
@@ -179,6 +194,28 @@ class L2VPN:
             return list(map(lambda x: L2VPN(name=x[0], vsi=x[1], isolated=x[2],
                                             encap=x[3], mtu=x[4], loop_detect=x[5],
                                             description=x[6], admin_status=x[7]),  list_rows))
+        except MySQLdb.Error, e:
+            print (e)
+            L2VPN.db.rollback()
+
+    @staticmethod
+    def get_list_ccc(hostname):
+        try:
+            sql_query = "select CCC_Name from ifl where hostname = '%s' " \
+                        "and Service like '%s' group by CCC_Name" % (hostname,'ccc%')
+            L2VPN.cursor.execute(sql_query)
+            # handle the data
+            list_rows = L2VPN.cursor.fetchall()
+            list_ccc = list(map(lambda x: CCC(name=x[0]),list_rows))
+            for item_ccc in list_ccc:
+                sql = "select ifd.MX_IFD,ifl.Unit1 from ifl "\
+                      "inner join ifd on ifl.Hostname=ifd.Hostname and ifl.IFD = ifd.Name "\
+                      "where ifl.hostname='%s' and ifl.Service like '%s' and  ifl.CCC_Name='%s'" %\
+                     (hostname, 'ccc%', item_ccc.name)
+                L2VPN.cursor.execute(sql)
+                list_rows1 = L2VPN.cursor.fetchall()
+                item_ccc.list_intf_ccc = list(map(lambda x:x[0]+'.'+str(x[1]),list_rows1))
+            return list_ccc
         except MySQLdb.Error, e:
             print (e)
             L2VPN.db.rollback()
@@ -260,3 +297,7 @@ class L2VPN:
             f.write(f_txt)
         print("write successful")
 
+class CCC:
+    def __init__(self,name=''):
+        self.name=name
+        self.list_intf_ccc = []
