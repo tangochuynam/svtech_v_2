@@ -53,6 +53,7 @@ class INTERFACE_UNIT:
             #print row
             if len(row) > 0:
                 mx_ifd_temp = row[0][0]
+                #print 'MX-IFD-TEMP:',ifd,mx_ifd_temp
                 #print ("name_mx_ifd: " + mx_ifd_temp)
                 ifd_filter = list(filter(lambda x: x.mx_ifd == mx_ifd_temp,  list_ifd))
                 if ifd_filter[0].flag_default & ifd_filter[0].flag_default_l2circuit:

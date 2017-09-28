@@ -281,6 +281,7 @@ class IFD:
                 unit.trust_1p = info[29]
             #print 'info[36]:',info[36]
             unit.trust_upstream = info[36]
+            unit.routing_type = info[37]
             if unit.bd_id in ifd.list_bd_id_dup:
                 unit.bd_dup_notation = True
             # only get the unit from IFD.list_unit_vlan_policer
@@ -325,7 +326,7 @@ class IFD:
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
                   "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
                   "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
-                  "VRRP_reduce,Trust_upstream " \
+                  "VRRP_reduce,Trust_upstream,Routing_type " \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
@@ -493,6 +494,7 @@ class UNIT:
         self.trust_1p = False
         self.bd_dup_notation=False
         self.trust_upstream = False
+        self.routing_type = ''
 
     @staticmethod
     def insert_list_ip(info,hostname):

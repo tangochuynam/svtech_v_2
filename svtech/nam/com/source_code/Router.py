@@ -96,7 +96,7 @@ class Router:
             list_rows = Router.cursor.fetchall()
             if len(list_rows)>0:
                 list_tmp = list_rows[0][0].split('|')
-                print list_tmp
+                #print list_tmp
                 dict_exp = {'level-1': '', 'level-2': ''}
                 for item in list_tmp:
                     if 'level-1' in item:
@@ -104,12 +104,12 @@ class Router:
                             dict_exp['level-1'] = item.split()[0]
                         else:
                             dict_exp['level-1'] = dict_exp['level-1'] + ' ' + item.split()[0]
-                    else:
+                    elif item!='':
                         if dict_exp['level-2']=='':
                             dict_exp['level-2'] = item.split()[0]
                         else:
                             dict_exp['level-2'] = dict_exp['level-2'] + ' ' + item.split()[0]
-                print dict_exp
+                #print dict_exp
                 return dict_exp
             else:
                 return {}

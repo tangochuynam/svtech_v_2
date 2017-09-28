@@ -143,13 +143,13 @@ class CFGROUTER:
             #sql = "select ifd.MX_IFD, ifl.Unit1, ifl.Intf_metric, ifd.Name from ifl inner join ifd " \
             #      "on ifl.Hostname = ifd.Hostname and ifl.IFD = ifd.Name " \
             #      "where ifl.Service = 'CORE' and ifl.Routing_type = 'isis' and ifl.Hostname = '%s' " % CFGROUTER.hostname
-            sql = "select ifd.MX_IFD, ifl.Unit1, ifl.Intf_metric, ifd.Name, ifl.ISIS_authen from ifl inner join ifd " \
+            sql = "select ifd.MX_IFD, ifl.Unit1, ifl.Intf_metric, ifd.Name, ifl.ISIS_authen,ifl.LDP_SYNC from ifl inner join ifd " \
                   "on ifl.Hostname = ifd.Hostname and ifl.IFD = ifd.Name " \
                   "where (ifl.Service = 'CORE' or ifl.Service = 'L3' ) and " \
                   "ifl.Routing_type = 'isis' and ifl.Hostname = '%s' " % CFGROUTER.hostname
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
-            self.list_core_igp = list(map(lambda x: IGP_MXIFD_UNIT(x[0] if x[0] is not None else x[3], x[1], x[2],x[4]), list_rows))
+            self.list_core_igp = list(map(lambda x: IGP_MXIFD_UNIT(x[0] if x[0] is not None else x[3], x[1], x[2],x[4],x[5]), list_rows))
 
         except MySQLdb.Error, e:
             print (e)
@@ -212,11 +212,12 @@ class MXIFD_UNIT:
 class IGP_MXIFD_UNIT:
 
     #default_metric = 0
-    def __init__(self, mx_ifd, unit1, metric, isis_authen ):
+    def __init__(self, mx_ifd, unit1, metric, isis_authen, ldp_sync ):
         self.mx_ifd = mx_ifd
         self.unit1 = unit1
         self.metric = metric
         self.isis_authen = isis_authen
+        self.ldp_sync = ldp_sync
 
 
 class POLICYMAP:

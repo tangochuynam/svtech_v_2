@@ -54,8 +54,9 @@ class Main:
                      'R7609-KHW-NPE-01']
         list_asr = ['ASR9912-TBI-P-01','ASR9912-TBI-P-02','ASR9912-HBT-P-01','ASR9912-HBT-P-02','ASR9912-GDI-P-01','ASR9912-GDI-P-02']
         check_continute = 'y'
-
-        for hostname in ['LDG03THA']:
+        #'THA02SSN','LSN99LLI'
+        #'LSN00LLI','THA00THA'
+        for hostname in ['THA01TSN','THA02LTH','THA02QXG','THA06HTG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname

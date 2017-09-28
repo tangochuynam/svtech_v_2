@@ -206,15 +206,20 @@ class L2VPN:
             L2VPN.cursor.execute(sql_query)
             # handle the data
             list_rows = L2VPN.cursor.fetchall()
-            list_ccc = list(map(lambda x: CCC(name=x[0]),list_rows))
-            for item_ccc in list_ccc:
-                sql = "select ifd.MX_IFD,ifl.Unit1 from ifl "\
-                      "inner join ifd on ifl.Hostname=ifd.Hostname and ifl.IFD = ifd.Name "\
-                      "where ifl.hostname='%s' and ifl.Service like '%s' and  ifl.CCC_Name='%s'" %\
-                     (hostname, 'ccc%', item_ccc.name)
-                L2VPN.cursor.execute(sql)
-                list_rows1 = L2VPN.cursor.fetchall()
-                item_ccc.list_intf_ccc = list(map(lambda x:x[0]+'.'+str(x[1]),list_rows1))
+            if len(list_rows)>0:
+                list_ccc = list(map(lambda x: CCC(name=x[0]),list_rows))
+                for item_ccc in list_ccc:
+                    sql = "select ifd.MX_IFD,ifl.Unit1 from ifl "\
+                          "inner join ifd on ifl.Hostname=ifd.Hostname and ifl.IFD = ifd.Name "\
+                          "where ifl.hostname='%s' and ifl.Service like '%s' and  ifl.CCC_Name='%s'" %\
+                         (hostname, 'ccc%', item_ccc.name)
+                    L2VPN.cursor.execute(sql)
+                    list_rows1 = L2VPN.cursor.fetchall()
+                    print list_rows1
+                    if len(list_rows1)>0:
+                        item_ccc.list_intf_ccc = list(map(lambda x: x[0]+'.'+str(x[1]) ,list_rows1))
+            else:
+                list_ccc = []
             return list_ccc
         except MySQLdb.Error, e:
             print (e)
