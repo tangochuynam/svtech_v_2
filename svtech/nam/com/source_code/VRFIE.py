@@ -7,7 +7,7 @@ import Database
 class PSTERM:
     def __init__(self):
         self.term_name = ""
-        self.acl = ""
+        self.acl = []
         self.protocol = ""
         self.route_filter = ""
         self.action = ""
@@ -73,7 +73,20 @@ class VRFIE:
             for row in list_rows_exp:
                 psterm = PSTERM()
                 psterm.term_name = row[0] + "_" + str(row[1])
-                psterm.acl = row[2]
+                temp_acl = row[2]
+                sql = "select Prefix_Source from acl_detail " \
+                      "where Hostname = '%s' and Name = '%s' " \
+                      % (hostname, temp_acl)
+                VRFIE.cursor.execute(sql)
+                temp_list_row = VRFIE.cursor.fetchall()
+                if len(temp_list_row) > 0:
+                    for item_prefix in temp_list_row:
+                        if 'equal' not in item_prefix[0]:
+                            psterm.acl.append(item_prefix[0].split()[0]+'/'+item_prefix[0].split()[1]+' exact')
+                        else:
+                            psterm.acl.append(item_prefix[0].split()[0] + '/' + item_prefix[0].split()[1]+
+                                              ' prefix-length-range /'+item_prefix[0].split()[3]+'-/'+
+                                              item_prefix[0].split()[5])
                 psterm.protocol = row[3]
                 psterm.route_filter = Utils.convert_subnet(row[4])
                 psterm.action = row[5]
