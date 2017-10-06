@@ -53,6 +53,8 @@ class ACL:
         ip_temp = info[0]
         if ip_temp != '':
             host, subnet = ip_temp.strip().split()
+            if subnet=='0':
+                subnet ='32'
             subnet_mask = host + '/' + subnet
             network_ipv4 = ip.ip_network(unicode(subnet_mask))
             ip_temp = str(network_ipv4)
@@ -74,9 +76,8 @@ class ACL:
                 ACL.cursor.execute(sql_1)
                 lst_ip = ACL.cursor.fetchall()
                 for tmp_ip in lst_ip:
-                    if tmp_ip[0] == '':
-                        lst_mgmt_acl.append('0.0.0.0/0')
-                    else:
+                    if tmp_ip[0] != '':
+                        #lst_mgmt_acl.append('0.0.0.0/0')
                         lst_mgmt_acl.append(ACL.convert_ip(tmp_ip))
         except MySQLdb.Error, e:
             print (e)
