@@ -187,7 +187,9 @@ class CFGROUTER:
             if len(row) > 0:
                 self.as_number = row[0][0]
             else:
-                raise ValueError("select as_number in CFGROUTER Fail")
+                print 'Khong ton tai config bgp peer tren thiet bi ' + self.hostname
+                self.as_number=input('Nhap gia tri AS cua tinh:')
+                #raise ValueError("select as_number in CFGROUTER Fail")
         except MySQLdb.Error, e:
             print (e)
             CFGROUTER.db.rollback()
