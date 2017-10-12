@@ -29,7 +29,14 @@ class Utils:
                     subnet = str(ip.prefixlen)
                     return host + '/' + subnet
         elif '-' in x :
-            tmp_x = string.replace(x, '-', ':', 2).split()[0]
+            #tmp_x_1 = string.replace(x, '-', '', 2).split()[0]
+            tmp_x_list = x.split()[0].split('-')
+            tmp_x = ''
+            for item in tmp_x_list:
+                if tmp_x=='':
+                    tmp_x = item[0:2] + ':' + item[2:]
+                else:
+                    tmp_x = tmp_x + ':' + item[0:2] + ':' + item[2:]
             return tmp_x
         else:
             return x
