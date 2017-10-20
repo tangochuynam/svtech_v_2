@@ -83,7 +83,7 @@ class VRFWITHIPHEPLPER:
 
             sql_interface = "select ifl.IP_helper, ifd.MX_IFD, ifl.Unit1, ifd.Name from ifl inner join ifd " \
                             "on ifl.Hostname = ifd.Hostname and ifl.ifd = ifd.Name " \
-                            "where ifl.VRF_Name = '%s' and ifl.Hostname = '%s' " % (vrf, hostname)
+                            "where ifl.VRF_Name = '%s' and ifl.Hostname = '%s' and ifd.MX_IFD!='';" % (vrf, hostname)
             VRFWITHIPHEPLPER.cursor.execute(sql_interface)
             list_rows_intf = VRFWITHIPHEPLPER.cursor.fetchall()
             vrf_with_helper.list_server_intf_group = VRFWITHIPHEPLPER.extract_interface_group(list_rows_intf,
