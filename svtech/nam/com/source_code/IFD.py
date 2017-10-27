@@ -89,14 +89,14 @@ class IFD:
     @staticmethod
     def query_data_df(hostname, vrf_df_dict):
         try:
-            IFD.hostname = hostname
             dict_irb = {}
             for key in vrf_df_dict:
                 sql = "select Unit from ifl " \
-                      "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif" % (hostname,key)
+                      "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif' " % (hostname,key)
                 IFD.cursor.execute(sql)
                 list_rows = IFD.cursor.fetchall()
-                dict_irb[list_rows[0]] = list_rows[1]
+                if len(list_rows) > 0:
+                    dict_irb[list_rows[0][0]] = vrf_df_dict[key]
             return dict_irb
         except MySQLdb.Error, e:
             print (e)
@@ -292,8 +292,8 @@ class IFD:
             unit.dhcp_gw = info[25]
             unit.classifier = Utils.change_name_classifier(info[26])
             unit.df_classifier = Utils.change_name_classifier(info[27])
-            if (ifd.name != 'Vlanif') and (unit.unit in irb_df_dict) and (unit.df_classifier == ''):
-                unit.classifier = irb_df_dict[unit.unit]
+            if (ifd.name != 'Vlanif') and (unit.unit1 in irb_df_dict) and (unit.df_classifier == ''):
+                unit.df_classifier = irb_df_dict[unit.unit]
             unit.arp_exp = info[28] / 60
             if (unit.ip == '') and (info[29]):
                 unit.trust_1p = info[29]
