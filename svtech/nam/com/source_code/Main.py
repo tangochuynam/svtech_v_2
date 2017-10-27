@@ -56,7 +56,7 @@ class Main:
         check_continute = 'y'
         #'THA02SSN','LSN99LLI'
         #'LSN00LLI','THA00THA'
-        for hostname in ['THA03TGA']:
+        for hostname in ['LSN00DDG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -93,12 +93,17 @@ class Main:
 
             #move from line 82 to line 89 at Sep-22
             dict_policy_map_used = {}
-            list_ifd = IFD.query_data(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used)
+            vrf_df_dict = VRF.query_data_df(hostname)
+            irb_df_dict = IFD.query_data_df(hostname,vrf_df_dict)
+            list_ifd = IFD.query_data(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used,irb_df_dict)
             #list static route global 18/9
             list_static_global = StaticRoute.query_data(hostname, '')
             # L3VPN
             vrf_service_list = VRF.query_data(hostname)
+
+            #print 'vrf list:',vrf_service_list
             vrfie_list = VRFIE.query_data(vrf_service_list)
+            #print vrfie_list
             list_all_extomm_from_VRFIE = VRFIE.get_all_extcomm(vrfie_list)
 
             # get_list_acl
@@ -148,7 +153,7 @@ class Main:
                           lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
                           event_time, lst_log_server, list_lsp, lst_bgp_huawei,
                           list_mgmt_acl,list_static_global,dict_policy_map_used,list_ccc, dict_exp_isis,
-                         file_name_2, self.path_input, self.path_output, hostname)
+                         file_name_1, self.path_input, self.path_output, hostname)
             #check_continute = raw_input("Do you want to continute: ")
             #if check_continute != 'y':
             #    break

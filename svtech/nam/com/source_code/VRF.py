@@ -265,6 +265,23 @@ class VRF:
         return list_service
 
     @staticmethod
+    def query_data_df(hostname):
+        try:
+            VRF.hostname = hostname
+            print ("coming into SQL")
+            list_hostname_write = []
+            sql_query = "select Name,Classifier from vrf where Hostname = '%s' and Classifier!=''" % hostname
+            VRF.cursor.execute(sql_query)
+            # handle the data
+            list_rows = VRF.cursor.fetchall()
+            list_service = {x[0]: x[1] for x in list_rows}
+            return list_service
+        except MySQLdb.Error, e:
+            print (e)
+            # rollback in case there is any error
+            VRF.db.rollback()
+
+    @staticmethod
     def writefile(vrf_service_list, l2vpn_list, l2vpn_list_local, vrfie_list, list_all_extomm_from_VRFIE,
                   neighbor_list, list_ifd, list_policer, cfg_router, list_acl, lst_route_map, lst_extcomm_bgp,
                   lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,

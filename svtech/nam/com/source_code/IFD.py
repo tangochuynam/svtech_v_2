@@ -60,7 +60,7 @@ class IFD:
         IFD.lst_dhcp_relay = lst_dhcp_relay
 
     @staticmethod
-    def query_data(hostname, flag_create_notation, dict_policy_map,dict_policy_map_used):
+    def query_data(hostname, flag_create_notation, dict_policy_map, dict_policy_map_used, irb_df_dict):
         try:
             IFD.hostname = hostname
             IFD.flag_create_notation = flag_create_notation
@@ -77,11 +77,27 @@ class IFD:
 
             for ifd in list_ifd:
                 #print("ifd_mxifd: " + ifd.mx_ifd)
-                ifd.insert_unit(dict_policy_map, dict_policy_map_used)
+                ifd.insert_unit(dict_policy_map, dict_policy_map_used, irb_df_dict)
 
             # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
             list_ifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_ifd), list_ifd))
             return list_ifd
+        except MySQLdb.Error, e:
+            print (e)
+            IFD.db.rollback()
+
+    @staticmethod
+    def query_data_df(hostname, vrf_df_dict):
+        try:
+            IFD.hostname = hostname
+            dict_irb = {}
+            for key in vrf_df_dict:
+                sql = "select Unit from ifl " \
+                      "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif" % (hostname,key)
+                IFD.cursor.execute(sql)
+                list_rows = IFD.cursor.fetchall()
+                dict_irb[list_rows[0]] = list_rows[1]
+            return dict_irb
         except MySQLdb.Error, e:
             print (e)
             IFD.db.rollback()
@@ -237,7 +253,7 @@ class IFD:
                 dict_policy_map_used[tmp_unit.ff_out+ '/inet'] = tmp_policy_map
 
     @staticmethod
-    def convert_info_unit1(info, ifd, dict_policy_map, dict_policy_map_used):
+    def convert_info_unit1(info, ifd, dict_policy_map, dict_policy_map_used, irb_df_dict):
 
         ip_helper_tmp = info[19]
         if (ifd.name != 'Vlanif') | (ip_helper_tmp == ''):
@@ -276,6 +292,8 @@ class IFD:
             unit.dhcp_gw = info[25]
             unit.classifier = Utils.change_name_classifier(info[26])
             unit.df_classifier = Utils.change_name_classifier(info[27])
+            if (ifd.name != 'Vlanif') and (unit.unit in irb_df_dict) and (unit.df_classifier == ''):
+                unit.classifier = irb_df_dict[unit.unit]
             unit.arp_exp = info[28] / 60
             if (unit.ip == '') and (info[29]):
                 unit.trust_1p = info[29]
@@ -314,7 +332,7 @@ class IFD:
             self.flex_service = parent_of_ifd[0].flex_service
         return self
 
-    def insert_unit(self, dict_policy_map, dict_policy_map_used):
+    def insert_unit(self, dict_policy_map, dict_policy_map_used, irb_df_dict):
         try:
             #print("insert_unit_to " + "ifd_mxifd: " + ifd.mx_ifd + " flag_default: " + str(ifd.flag_default) + " flag_l2circuit: "
             #      + str(ifd.flag_default_l2circuit) + " flag_vpls: " + str(ifd.flag_default_vpls)
@@ -344,7 +362,7 @@ class IFD:
                 self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
                 #print self.list_bd_id_dup
 
-                list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used), list_rows))
+                list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used, irb_df_dict), list_rows))
                 # filter nhung phan tu None trong list_unit_temp
                 self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
                 # bo sung vao list_unit truong hop loopback cho dhcp relay
