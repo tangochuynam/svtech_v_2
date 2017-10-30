@@ -122,9 +122,14 @@ class CFGROUTER:
 
     def get_core_pim_list(self):
         try:
+            '''
             sql = "select ifd.MX_IFD, ifl.Unit1, ifd.Name from ifl inner join ifd " \
                   "on ifl.Hostname = ifd.Hostname and ifl.IFD = ifd.Name " \
                   "where (ifl.Service = 'CORE' or ifl.Service = 'L3' )and ifl.PIM = '1' and ifl.Routing_type='isis' and ifl.Hostname = '%s' " % CFGROUTER.hostname
+            '''
+            sql = "select ifd.MX_IFD, ifl.Unit1, ifd.Name from ifl inner join ifd " \
+                  "on ifl.Hostname = ifd.Hostname and ifl.IFD = ifd.Name " \
+                  "where (ifl.Service = 'CORE' or ifl.Service = 'L3' )and ifl.PIM = '1' and ifl.Hostname = '%s' " % CFGROUTER.hostname
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_core_pim = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))

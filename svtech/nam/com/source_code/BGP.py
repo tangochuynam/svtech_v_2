@@ -16,7 +16,11 @@ class NEIGHBOR_PEER_AS:
         else:
             print("import policy is null")
             self.import_policy = ''
-        self.export_policy = export_policy
+        if export_policy is not None:
+            self.export_policy = export_policy
+        else:
+            print "export policy is null"
+            self.export_policy = ''
 
 
 class BGP:
@@ -47,6 +51,7 @@ class BGP:
             list_rows = BGP.cursor.fetchall()
             list_group = list(map(lambda x: x[0], list_rows))
             list_bgp = BGP.extract_data(hostname, vrf_name, list_group)
+            #print list_bgp
             return list_bgp
         except MySQLdb.Error, e:
             print (e)
@@ -68,6 +73,7 @@ class BGP:
                       % (hostname, vrf_name, group)
                 BGP.cursor.execute(sql)
                 list_rows = BGP.cursor.fetchall()
+                #print list_rows
                 for row in list_rows:
                     neighbor_peer = BGP.get_neighbor_peer(hostname, row)
                     bgp.list_neighbor_peer_as.append(neighbor_peer)
@@ -98,7 +104,8 @@ class BGP:
                 ip, subnet = temp_row[0][0].split()
             else:
                 ip = ''
-            return NEIGHBOR_PEER_AS(ip, row[0], row[2], row[3], row[4], row[5])
+            #print ip,row[0],row[2],row[3], row[4], row[5], row[6]
+            return NEIGHBOR_PEER_AS(ip, row[0], row[2], row[3], row[4], row[5],row[6])
         except MySQLdb.Error, e:
             print (e)
             BGP.db.rollback()

@@ -4,9 +4,10 @@ import Database
 
 
 class Sequence:
-    def __init__(self, seq, lst_extcommn, action):
+    def __init__(self, seq, lst_extcommn, lst_prefix, action):
         self.seq = seq
         self.lst_extcomm = lst_extcommn
+        self.lst_prefix = lst_prefix
         self.action = action
 
 
@@ -39,10 +40,11 @@ class RouteMap:
 
     def insert_info_to_seq(self):
         try:
-            sql = "select Seq, Extcomm, Action_1 from route_map where Hostname = '%s' and Name = '%s'" % (RouteMap.hostname, self.name)
+            sql = "select Seq, Extcomm,ACL,Action_1 from route_map where Hostname = '%s' and Name = '%s'" % (RouteMap.hostname, self.name)
             RouteMap.cursor.execute(sql)
             rows = RouteMap.cursor.fetchall()
-            self.lst_seq = list(map(lambda x: Sequence(x[0], x[1].split(), x[2]), rows))
+            #print rows
+            self.lst_seq = list(map(lambda x: Sequence(x[0], x[1].split(), RouteMap.convert_acl_to_pref(x[2]), x[3]), rows))
         except MySQLdb.Error, e:
             print (e)
             RouteMap.db.rollback()
@@ -61,6 +63,27 @@ class RouteMap:
                 return list(set(lst_extcomm))
             else:
                 return lst_extcomm
+        except MySQLdb.Error, e:
+            print (e)
+            RouteMap.db.rollback()
+
+    @staticmethod
+    def convert_acl_to_pref(acl_name):
+        try:
+            lst_prefix = []
+            #print acl_name
+            if acl_name!='':
+                sql = "select Prefix_Source from acl_detail where Hostname = '%s' and Name ='%s' " %(RouteMap.hostname, acl_name)
+
+                RouteMap.cursor.execute(sql)
+                rows = RouteMap.cursor.fetchall()
+
+                if len(rows) > 0 :
+                    lst_prefix = list(map(lambda x: [x[0].split()[0]+'/'+x[0].split()[1],x[0].split()[2].split('-')[0],
+                                                      x[0].split()[2].split('-')[1]] if '-' in x[0]
+                    else [x[0].split()[0]+'/'+x[0].split()[1]],rows))
+                #print lst_prefix
+            return lst_prefix
         except MySQLdb.Error, e:
             print (e)
             RouteMap.db.rollback()
