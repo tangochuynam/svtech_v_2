@@ -51,7 +51,8 @@ class ACL:
     @staticmethod
     def convert_ip(info):
         ip_temp = info[0]
-        if ip_temp != '':
+        if (ip_temp != '') and ('-' not in ip_temp):
+            #print "Test gia tri ip_temp:", ip_temp
             host, subnet = ip_temp.strip().split()
             if subnet=='0':
                 subnet ='32'
