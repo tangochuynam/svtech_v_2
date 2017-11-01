@@ -56,6 +56,7 @@ class INTERFACE_UNIT:
                 #print 'MX-IFD-TEMP:',ifd,mx_ifd_temp
                 #print ("name_mx_ifd: " + mx_ifd_temp)
                 ifd_filter = list(filter(lambda x: x.mx_ifd == mx_ifd_temp,  list_ifd))
+                #print 'Gia tri IFD_FILTER:',ifd_filter
                 if ifd_filter[0].flag_default & ifd_filter[0].flag_default_l2circuit:
                     return row[0][0] + ".0"
                 else:
