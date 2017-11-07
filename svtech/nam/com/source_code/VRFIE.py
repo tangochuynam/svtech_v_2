@@ -81,12 +81,13 @@ class VRFIE:
                 temp_list_row = VRFIE.cursor.fetchall()
                 if len(temp_list_row) > 0:
                     for item_prefix in temp_list_row:
-                        if 'equal' not in item_prefix[0]:
+                        if '-' not in item_prefix[0]:
                             psterm.acl.append(item_prefix[0].split()[0]+'/'+item_prefix[0].split()[1]+' exact')
                         else:
+                            #print 'Test result item_prefix:',item_prefix
                             psterm.acl.append(item_prefix[0].split()[0] + '/' + item_prefix[0].split()[1]+
-                                              ' prefix-length-range /'+item_prefix[0].split()[3]+'-/'+
-                                              item_prefix[0].split()[5])
+                                              ' prefix-length-range /'+item_prefix[0].split()[2].split('-')[0]+'-/'+
+                                              item_prefix[0].split()[2].split('-')[1])
                 psterm.protocol = row[3]
                 psterm.route_filter = Utils.convert_subnet(row[4])
                 psterm.action = row[5]
