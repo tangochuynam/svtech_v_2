@@ -1,10 +1,10 @@
 import MySQLdb
 import ipaddr
 from jinja2 import Environment, FileSystemLoader
-from .Database import Database
-from .Utils import Utils
+from Database import Database
+from Utils import Utils
 import netaddr
-from .CFGROUTER import POLICYMAP
+from CFGROUTER import POLICYMAP
 
 class IFD:
     db = Database.db
@@ -466,8 +466,8 @@ class IFD:
 
 
 class UNIT:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, unit1=0, description="", service="", svlan="", cvlan="", vlan_mapping="",
                  vlan_translate="", vlan_map_svlan="", vlan_map_cvlan="",

@@ -1,7 +1,7 @@
 import MySQLdb
 
-from .Database import Database
-from .Utils import Utils
+from Database import Database
+import Utils
 
 
 class INTERFACE_UNIT:

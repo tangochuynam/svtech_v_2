@@ -4,8 +4,8 @@ import MySQLdb
 import re
 from jinja2 import Environment, FileSystemLoader
 
-from .Database import Database
-from .IFL import INTERFACE_UNIT
+from Database import Database
+from IFL import INTERFACE_UNIT
 
 
 class PEER_L2VPN:

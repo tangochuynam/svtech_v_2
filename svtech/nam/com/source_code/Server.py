@@ -1,6 +1,6 @@
 import MySQLdb
 
-from .Database import Database
+from Database import Database
 
 
 class Server:

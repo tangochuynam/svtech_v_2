@@ -1,4 +1,4 @@
-from .IFL import IFL
+import IFL
 import netaddr as net
 
 

@@ -1,6 +1,6 @@
 import MySQLdb
 import ipaddress as ip
-from .Database import Database
+from Database import Database
 
 
 class ACL:

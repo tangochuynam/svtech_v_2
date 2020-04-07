@@ -1,20 +1,19 @@
-import Database
-import os
-from .ACL import ACL
-from .IFD import IFD
-from .L2VPN import L2VPN
-from .Policer import POLICER
-from .Router import Router
-from .L2VPN import NEIGHBOR
-from .VRF import VRF
-from .Server import Server
-from .VRFIE import VRFIE
-from .CFGROUTER import CFGROUTER
-from .RouteMap import RouteMap
-from .BGP import BGP
-from .IFL import IFL
-from .LSP import LSP
-from .StaticRoute import StaticRoute
+from Database import Database
+from ACL import ACL
+from IFD import IFD
+from L2VPN import L2VPN
+from Policer import POLICER
+from Router import Router
+from L2VPN import NEIGHBOR
+from VRF import VRF
+from Server import Server
+from VRFIE import VRFIE
+from CFGROUTER import CFGROUTER
+from RouteMap import RouteMap
+from BGP import BGP
+from IFL import IFL
+from LSP import LSP
+from StaticRoute import StaticRoute
 import time
 import random
 
@@ -23,9 +22,9 @@ class Main:
 
     def __init__(self):
         # open database connection
-        self.db = Database.Database.db
+        self.db = Database.db
         # prepare a cursor object using cursor() method
-        self.cursor = Database.Database.cursor
+        self.cursor = Database.cursor
         self.path_input = "configuration_template"
         self.path_output = "configuration_created"
         #self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"

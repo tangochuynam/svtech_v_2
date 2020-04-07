@@ -1,7 +1,7 @@
 import MySQLdb
 from jinja2 import Environment, FileSystemLoader
-from .Utils import Utils
-from .Database import Database
+from Utils import Utils
+from Database import Database
 
 
 class PSTERM:

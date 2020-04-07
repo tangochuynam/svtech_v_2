@@ -5,11 +5,11 @@ import ipaddress as ip
 import re
 from jinja2 import Environment, FileSystemLoader
 
-from .Database import Database
-from .BGP import BGP
-from .DHCP import DHCP
-from .IFL import INTERFACE_UNIT
-from .StaticRoute import StaticRoute
+from Database import Database
+from BGP import BGP
+from DHCP import DHCP
+from IFL import INTERFACE_UNIT
+from StaticRoute import StaticRoute
 
 
 class SERVERGROUP:

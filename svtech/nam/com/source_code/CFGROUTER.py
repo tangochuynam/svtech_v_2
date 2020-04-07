@@ -1,12 +1,12 @@
 import MySQLdb
 from jinja2 import Environment, FileSystemLoader
-from .Utils import Utils
-from .Database import Database
+from Utils import Utils
+from Database import Database
 
 
 class CFGROUTER:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     hostname = ""
     router_type = ""
     def __init__(self):
@@ -286,8 +286,8 @@ class POLICYMAP:
 
 
 class FF:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, name='', Index_1=0, Action_1='', Protocol_1='', Prefix_Source=''
                  , S_Port='', Prefix_Dest='', D_Port=''):
