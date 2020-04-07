@@ -1,12 +1,11 @@
 import MySQLdb
 import ipaddress as ip
-
-import Database
+from .Database import Database
 
 
 class ACL:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, name):
         self.name = name
@@ -23,7 +22,7 @@ class ACL:
                 acl.get_list_prefix()
                 list_acl.append(acl)
             return list_acl
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             ACL.db.rollback()
 
@@ -34,7 +33,7 @@ class ACL:
             ACL.cursor.execute(sql)
             list_rows = ACL.cursor.fetchall()
             return list(map(lambda x: x[0], list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             ACL.db.rollback()
 
@@ -44,7 +43,7 @@ class ACL:
             ACL.cursor.execute(sql)
             list_rows = ACL.cursor.fetchall()
             self.prefix_list = list(map(lambda x: ACL.convert_ip(x), list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             ACL.db.rollback()
 
@@ -80,7 +79,7 @@ class ACL:
                     if tmp_ip[0] != '':
                         #lst_mgmt_acl.append('0.0.0.0/0')
                         lst_mgmt_acl.append(ACL.convert_ip(tmp_ip))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             ACL.db.rollback()
         finally:

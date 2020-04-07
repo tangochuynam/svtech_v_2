@@ -4,8 +4,8 @@ import MySQLdb
 import re
 from jinja2 import Environment, FileSystemLoader
 
-import Database
-from IFL import INTERFACE_UNIT
+from .Database import Database
+from .IFL import INTERFACE_UNIT
 
 
 class PEER_L2VPN:
@@ -19,8 +19,8 @@ class PEER_L2VPN:
 
 
 class NEIGHBOR:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     list_ifd = []
 
     def __init__(self, name, bk_peer, mtu, vc_id, description, encap, bk_vc_id):
@@ -46,7 +46,7 @@ class NEIGHBOR:
             list_rows = NEIGHBOR.cursor.fetchall()
             list_neighbor = NEIGHBOR.extract_data(list_rows, hostname)
             return list_neighbor
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             NEIGHBOR.db.rollback()
 
@@ -75,8 +75,8 @@ class NEIGHBOR:
 
 
 class L2VPN:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     list_ifd = []
     list_bd_id_ip = []
     router_type = ""
@@ -127,7 +127,7 @@ class L2VPN:
                 #        print ("query_data "+ "unit1: " + str(int_unit.unit1) + " stitching: " + str(int_unit.stitching))
                 list_l2vpn.append(data)
             return list_l2vpn
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             L2VPN.db.rollback()
@@ -142,7 +142,7 @@ class L2VPN:
             list_ccc = []
             list_ccc = L2VPN.get_list_ccc(hostname)
             return list_ccc
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             L2VPN.db.rollback()
@@ -161,7 +161,7 @@ class L2VPN:
                 l2_vpn_local = L2VPN.extract_data_local(list_rows_ifl, hostname, bdid)
                 list_l2vpn_local.append(l2_vpn_local)
             return list_l2vpn_local
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             L2VPN.db.rollback()
@@ -178,7 +178,7 @@ class L2VPN:
             L2VPN.cursor.execute(sql_query)
             list_bdid_local = L2VPN.cursor.fetchall()
             return list(map(lambda x: x[0], list_bdid_local))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             L2VPN.db.rollback()
 
@@ -194,7 +194,7 @@ class L2VPN:
             return list(map(lambda x: L2VPN(name=x[0], vsi=x[1], isolated=x[2],
                                             encap=x[3], mtu=x[4], loop_detect=x[5],
                                             description=x[6], admin_status=x[7]),  list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             L2VPN.db.rollback()
 
@@ -215,13 +215,13 @@ class L2VPN:
                          (hostname, 'ccc%', item_ccc.name)
                     L2VPN.cursor.execute(sql)
                     list_rows1 = L2VPN.cursor.fetchall()
-                    print list_rows1
+                    print (list_rows1)
                     if len(list_rows1)>0:
                         item_ccc.list_intf_ccc = list(map(lambda x: x[0]+'.'+str(x[1]) ,list_rows1))
             else:
                 list_ccc = []
             return list_ccc
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             L2VPN.db.rollback()
 
@@ -287,7 +287,7 @@ class L2VPN:
                 list_temp = list(map(lambda x: x[0], list_rows))
                 self.flag_pim = list_temp[0]
                 #print ("length: " + str(len(list_temp)) + " bd_id: " + bd_id)
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             L2VPN.db.rollback()
 

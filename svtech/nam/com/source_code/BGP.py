@@ -1,6 +1,6 @@
 import MySQLdb
 
-import Database
+from .Database import Database
 
 
 class NEIGHBOR_PEER_AS:
@@ -19,13 +19,13 @@ class NEIGHBOR_PEER_AS:
         if export_policy is not None:
             self.export_policy = export_policy
         else:
-            print "export policy is null"
+            print("export policy is null")
             self.export_policy = ''
 
 
 class BGP:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     router_type = ""
     def __init__(self):
         self.name_group = ""
@@ -53,7 +53,7 @@ class BGP:
             list_bgp = BGP.extract_data(hostname, vrf_name, list_group)
             #print list_bgp
             return list_bgp
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             BGP.db.rollback()
 
@@ -79,7 +79,7 @@ class BGP:
                     bgp.list_neighbor_peer_as.append(neighbor_peer)
                 list_bgp.append(bgp)
             return list_bgp
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             BGP.db.rollback()
 
@@ -106,7 +106,7 @@ class BGP:
                 ip = ''
             #print ip,row[0],row[2],row[3], row[4], row[5], row[6]
             return NEIGHBOR_PEER_AS(ip, row[0], row[2], row[3], row[4], row[5],row[6])
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             BGP.db.rollback()
 
@@ -134,7 +134,7 @@ class BGP:
                 return []
             else:
                 print ("Router_type is not ASR9k nor C76xx")
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             BGP.db.rollback()
 
@@ -167,7 +167,7 @@ class BGP:
                 lst_row_2 = BGP.cursor.fetchall()
                 bgp.list_neighbor_peer_as = list(map(lambda x: x[0], lst_row_2))
                 lst_bgp_hw.append(bgp)
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             BGP.db.rollback()
         finally:

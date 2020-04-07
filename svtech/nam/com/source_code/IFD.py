@@ -1,14 +1,14 @@
 import MySQLdb
 import ipaddr
 from jinja2 import Environment, FileSystemLoader
-import Database
-from Utils import Utils
+from .Database import Database
+from .Utils import Utils
 import netaddr
-from CFGROUTER import POLICYMAP
+from .CFGROUTER import POLICYMAP
 
 class IFD:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     iso_address = ""
     list_bd_id_igmp = []
     list_bd_id_l2vpn = []
@@ -82,7 +82,7 @@ class IFD:
             # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
             list_ifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_ifd), list_ifd))
             return list_ifd
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFD.db.rollback()
 
@@ -95,11 +95,11 @@ class IFD:
                       "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif' " % (hostname,key)
                 IFD.cursor.execute(sql)
                 list_rows = IFD.cursor.fetchall()
-                print key,':',list_rows
+                print (key,':',list_rows)
                 if len(list_rows) > 0:
                     dict_irb[list_rows[0][0]] = vrf_df_dict[key]
             return dict_irb
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFD.db.rollback()
 
@@ -186,7 +186,7 @@ class IFD:
             list_rows = IFD.cursor.fetchall()
             new_ifl=list_rows[0][0]+'.'+str(list_rows[0][1])
             return new_ifl
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFD.db.rollback()
 
@@ -235,7 +235,7 @@ class IFD:
         else:
             #print 'Tao policy map cho l3', tmp_unit.unit1, tmp_unit.ifd
             if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/inet') not in dict_policy_map_used):
-                print 'Dang tao policy map cho l3'
+                print('Dang tao policy map cho l3')
                 tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
                 tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
                 tmp_policy_map.df_lp = 'low'
@@ -375,7 +375,7 @@ class IFD:
                 #check special case (ccc)
 
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFD.db.rollback()
 
@@ -398,7 +398,7 @@ class IFD:
             if len(list_rows)>0:
                 self.flag_ccc = True
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFD.db.rollback()
 
@@ -450,7 +450,7 @@ class IFD:
             if len(list_rows_4) == 1:
                 self.flag_svlan_untagged = True
                 return 1
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFD.db.rollback()
 
@@ -590,7 +590,7 @@ class UNIT:
             if len(list_rows) < 1:
                 self.flag_bdid = True
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             db.rollback()
 
@@ -631,7 +631,7 @@ class UNIT:
                 self.get_list_unit_remote_helper(hostname, list_vc_bk_vc)
             else:
                 print("list_unit_remote is not in service l2circuit and vpls")
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             print (" in_list_unit_remote")
             UNIT.db.rollback()
@@ -679,14 +679,14 @@ class UNIT:
                          unit_rmt.ip, unit_rmt.vlan_mapping,
                          unit_rmt.vlan_translate, unit_rmt.service) = row_tmp
                         self.list_unit_remote.append(unit_rmt)
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             print ("in list unit remote helper")
             UNIT.db.rollback()
 
     def showdata(self):
         attrs = vars(self)
-        print ','.join("%s: %s" % item for item in attrs.items())
+        print (','.join("%s: %s" % item for item in attrs.items()))
 
 
 class UNIT_IP:
@@ -707,4 +707,4 @@ class VRRP:
 
     def showdata(self):
         attrs = vars(self)
-        print ','.join("%s: %s" % item for item in attrs.items())
+        print (','.join("%s: %s" % item for item in attrs.items()))

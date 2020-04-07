@@ -1,6 +1,7 @@
-import IFL
+from .IFL import IFL
 import netaddr as net
-import string
+
+
 class Utils:
     def __init__(self):
         pass

@@ -1,7 +1,7 @@
 import MySQLdb
 from jinja2 import Environment, FileSystemLoader
-from Utils import Utils
-import Database
+from .Utils import Utils
+from .Database import Database
 
 
 class PSTERM:
@@ -13,8 +13,8 @@ class PSTERM:
         self.action = ""
 
 class VRFIE:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, hostname, service_name, service_name_out):
         self.list_extcomm_exp_default = []
@@ -56,7 +56,7 @@ class VRFIE:
                 data = VRFIE.extract_data(list_rows_df_exp, list_rows_df_imp, list_rows_exp, hostname, vrf_name, vrf_name_out)
                 list_vrfie.append(data)
             return list_vrfie
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             VRFIE.db.rollback()
@@ -103,7 +103,7 @@ class VRFIE:
             # merge element with the same value
             list_all_extcomm = list(set(list_all_extcomm))
             return list_all_extcomm
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             VRFIE.db.rollback()
 

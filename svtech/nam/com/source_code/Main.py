@@ -1,20 +1,20 @@
 import Database
 import os
-from ACL import ACL
-from IFD import IFD
-from L2VPN import L2VPN
-from Policer import POLICER
-from Router import Router
-from L2VPN import NEIGHBOR
-from VRF import VRF
-from Server import Server
-from VRFIE import VRFIE
-from CFGROUTER import CFGROUTER
-from RouteMap import RouteMap
-from BGP import BGP
-from IFL import IFL
-from LSP import LSP
-from StaticRoute import StaticRoute
+from .ACL import ACL
+from .IFD import IFD
+from .L2VPN import L2VPN
+from .Policer import POLICER
+from .Router import Router
+from .L2VPN import NEIGHBOR
+from .VRF import VRF
+from .Server import Server
+from .VRFIE import VRFIE
+from .CFGROUTER import CFGROUTER
+from .RouteMap import RouteMap
+from .BGP import BGP
+from .IFL import IFL
+from .LSP import LSP
+from .StaticRoute import StaticRoute
 import time
 import random
 

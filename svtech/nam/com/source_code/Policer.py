@@ -1,11 +1,11 @@
 import MySQLdb
 
-import Database
+from .Database import Database
 
 
 class POLICER:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, name, bandwidth, burst_size):
         self.name = name
@@ -21,7 +21,7 @@ class POLICER:
             list_rows = POLICER.cursor.fetchall()
             list_policer = list(map(lambda x: POLICER.get_policer(x), list_rows))
             return list_policer
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             POLICER.db.rollback()
 

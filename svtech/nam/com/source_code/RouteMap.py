@@ -1,6 +1,6 @@
 import MySQLdb
 
-import Database
+from .Database import Database
 
 
 class Sequence:
@@ -12,8 +12,8 @@ class Sequence:
 
 
 class RouteMap:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     hostname = ""
 
     def __init__(self, name):
@@ -35,7 +35,7 @@ class RouteMap:
                     route_map.insert_info_to_seq()
                     lst_route_map.append(route_map)
             return lst_route_map
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
 
     def insert_info_to_seq(self):
@@ -45,7 +45,7 @@ class RouteMap:
             rows = RouteMap.cursor.fetchall()
             #print rows
             self.lst_seq = list(map(lambda x: Sequence(x[0], x[1].split(), RouteMap.convert_acl_to_pref(x[2]), x[3]), rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             RouteMap.db.rollback()
 
@@ -63,7 +63,7 @@ class RouteMap:
                 return list(set(lst_extcomm))
             else:
                 return lst_extcomm
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             RouteMap.db.rollback()
 
@@ -84,6 +84,6 @@ class RouteMap:
                     else [x[0].split()[0]+'/'+x[0].split()[1]],rows))
                 #print lst_prefix
             return lst_prefix
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             RouteMap.db.rollback()

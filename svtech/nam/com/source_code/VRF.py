@@ -5,11 +5,11 @@ import ipaddress as ip
 import re
 from jinja2 import Environment, FileSystemLoader
 
-import Database
-from BGP import BGP
-from DHCP import DHCP
-from IFL import INTERFACE_UNIT
-from StaticRoute import StaticRoute
+from .Database import Database
+from .BGP import BGP
+from .DHCP import DHCP
+from .IFL import INTERFACE_UNIT
+from .StaticRoute import StaticRoute
 
 
 class SERVERGROUP:
@@ -21,8 +21,8 @@ class SERVERGROUP:
 
 
 class VRFWITHIPHEPLPER:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self):
         self.name = ""
@@ -61,7 +61,7 @@ class VRFWITHIPHEPLPER:
                 #        print ("interface_name: " + interface_temp)
                 list_vrf_with_ip_helper.append(vrf_with_helper)
             return list_vrf_with_ip_helper
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             VRFWITHIPHEPLPER.db.rollback()
 
@@ -93,7 +93,7 @@ class VRFWITHIPHEPLPER:
             ##    for interface_temp in temp.list_interface:
             #        print ("interface_name: " + interface_temp)
             return vrf_with_helper
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             VRFWITHIPHEPLPER.db.rollback()
 
@@ -141,8 +141,8 @@ class VRFWITHIPHEPLPER:
 
 
 class VRF:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
     hostname = ""
 
     def __init__(self):
@@ -172,7 +172,7 @@ class VRF:
             VRF.cursor.execute(sql)
             list_rows = VRF.cursor.fetchall()
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             VRF.db.rollback()
 
@@ -187,7 +187,7 @@ class VRF:
             #else:
             list_dhcp = list(map(lambda x: VRF.create_data_dhcp(x), list_rows))
             return list_dhcp
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             VRF.db.rollback()
 
@@ -219,7 +219,7 @@ class VRF:
             list_rows = VRF.cursor.fetchall()
             list_service = VRF.extract_data(list_rows)
             return list_service
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             VRF.db.rollback()
@@ -276,7 +276,7 @@ class VRF:
             list_rows = VRF.cursor.fetchall()
             list_service = {x[0]: x[1] for x in list_rows}
             return list_service
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             VRF.db.rollback()

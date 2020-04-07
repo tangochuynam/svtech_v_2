@@ -1,7 +1,7 @@
 import MySQLdb
 from jinja2 import Environment, FileSystemLoader
-from Utils import Utils
-import Database
+from .Utils import Utils
+from .Database import Database
 
 
 class CFGROUTER:
@@ -36,7 +36,7 @@ class CFGROUTER:
             one_row = CFGROUTER.cursor.fetchall()
             cfg_router = list(map(lambda x: CFGROUTER.create_cfg_router(x), one_row))
             return cfg_router[0]
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -82,7 +82,7 @@ class CFGROUTER:
             # print list_rows
             dict_policy_map = {x[0]: POLICYMAP.insert_item(x[0], CFGROUTER.hostname) for x in list_rows}
             self.dict_policy_map = dict_policy_map
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -92,7 +92,7 @@ class CFGROUTER:
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_irb = list(map(lambda x: MXIFD_UNIT('irb', x[0]), list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -104,7 +104,7 @@ class CFGROUTER:
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_core_mpls = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -116,7 +116,7 @@ class CFGROUTER:
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_core_rsvp = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -133,7 +133,7 @@ class CFGROUTER:
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_core_pim = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -156,7 +156,7 @@ class CFGROUTER:
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_core_igp = list(map(lambda x: IGP_MXIFD_UNIT(x[0] if x[0] is not None else x[3], x[1], x[2],x[4],x[5]), list_rows))
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -167,7 +167,7 @@ class CFGROUTER:
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_tldp = list(map(lambda x: x[0], list_rows))
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -180,7 +180,7 @@ class CFGROUTER:
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_igmp_ifl = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -192,10 +192,10 @@ class CFGROUTER:
             if len(row) > 0:
                 self.as_number = row[0][0]
             else:
-                print 'Khong ton tai config bgp peer tren thiet bi ' + self.hostname
+                print('Khong ton tai config bgp peer tren thiet bi ' + self.hostname)
                 self.as_number=input('Nhap gia tri AS cua tinh:')
                 #raise ValueError("select as_number in CFGROUTER Fail")
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             CFGROUTER.db.rollback()
 
@@ -228,8 +228,8 @@ class IGP_MXIFD_UNIT:
 
 
 class POLICYMAP:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, name=''):
         self.name = name
@@ -242,7 +242,7 @@ class POLICYMAP:
 
     def showdata(self):
         attrs = vars(self)
-        print ','.join("%s: %s" % item for item in attrs.items())
+        print(','.join("%s: %s" % item for item in attrs.items()))
 
     @staticmethod
     def insert_item(info, hostname):
@@ -266,7 +266,7 @@ class POLICYMAP:
                 # print 'MF:',list_rows
                 list_mf = list(map(lambda x: MF.insert_mf(x), list_rows))
             return list_mf
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
 
     @staticmethod
@@ -281,7 +281,7 @@ class POLICYMAP:
                 # print 'Gia tri Policy:', info, 'ACL:', list_rows
                 list_acl = FF.insert_acl_list(list_rows[0][2], hostname)
             return list_acl
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
 
 
@@ -302,7 +302,7 @@ class FF:
 
     def showdata(self):
         attrs = vars(self)
-        print ','.join("%s: %s" % item for item in attrs.items())
+        print(','.join("%s: %s" % item for item in attrs.items()))
 
     @staticmethod
     def insert_acl(info):
@@ -324,8 +324,8 @@ class FF:
 
 
 class MF:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, name, classname='', p1=0, dscp=0, set_1p=0, set_dscp='', set_ip_pre=0, set_exp=0, fc='',
                  lp=''):
@@ -342,7 +342,7 @@ class MF:
 
     def showdata(self):
         attrs = vars(self)
-        print ','.join("%s: %s" % item for item in attrs.items())
+        print(','.join("%s: %s" % item for item in attrs.items()))
 
     @staticmethod
     def insert_mf(info):

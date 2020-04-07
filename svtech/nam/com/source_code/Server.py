@@ -1,12 +1,12 @@
 import MySQLdb
 
-import Database
+from .Database import Database
 
 
 class Server:
     hostname = ""
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, ip = "", purpose = "", pref = False):
         self.ip = ip
@@ -20,6 +20,6 @@ class Server:
             Server.cursor.execute(sql)
             rows = Server.cursor.fetchall()
             return list(map(lambda x: Server(x[0], x[1], x[2]), rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Server.db.rollback()

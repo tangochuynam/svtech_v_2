@@ -1,11 +1,11 @@
 import MySQLdb
 
-import Database
+from .Database import Database
 
 
 class Router:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self):
         self.hostname = ""
@@ -22,7 +22,7 @@ class Router:
             list_rows = Router.cursor.fetchall()
             list_hostname = list(map(lambda x: x[0], list_rows))
             return list_hostname
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             # rollback in case there is any error
             Router.db.rollback()
@@ -37,7 +37,7 @@ class Router:
             list_rows = Router.cursor.fetchall()
             list_temp = list(map(lambda x: x[0], list_rows))
             return list_temp
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print(e)
             Router.db.rollback()
 
@@ -47,7 +47,7 @@ class Router:
             Router.cursor.execute(sql)
             row = Router.cursor.fetchall()
             self.type = row[0][0]
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -59,7 +59,7 @@ class Router:
             Router.cursor.execute(sql)
             list_rows = Router.cursor.fetchall()
             return list(map(lambda x: x[0], list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -72,7 +72,7 @@ class Router:
                 return list(map(lambda x: x[0], list_rows))
             else:
                 return []
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -85,7 +85,7 @@ class Router:
             Router.cursor.execute(sql)
             list_rows = Router.cursor.fetchall()
             return list_rows[0][0]
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -114,7 +114,7 @@ class Router:
             else:
                 return {}
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -125,7 +125,7 @@ class Router:
             Router.cursor.execute(sql)
             list_rows = Router.cursor.fetchall()
             return list(map(lambda x: x[0], list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -137,7 +137,7 @@ class Router:
             Router.cursor.execute(sql)
             rows = Router.cursor.fetchall()
             return list(map(lambda x: UNIT_VLAN_POLICER(x[0], x[1], x[2]), rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 
@@ -151,7 +151,7 @@ class Router:
             list_bd_id_ip = list(map(lambda x: x[0], list_rows))
             #dict_bd_id_router = {bd_id: True for bd_id in list_rows}
             return list_bd_id_ip
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             Router.db.rollback()
 

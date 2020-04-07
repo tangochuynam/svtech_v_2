@@ -1,7 +1,7 @@
 import MySQLdb
 import ipaddress as ip
 
-import Database
+from .Database import Database
 
 
 class NH_AD:
@@ -13,8 +13,8 @@ class NH_AD:
 
 
 class StaticRoute:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, net):
         self.net = net
@@ -37,7 +37,7 @@ class StaticRoute:
             list_group_net = list(map(lambda x: x[0], list_rows))
             list_static_route = StaticRoute.extract_data(hostname, vrf_name, list_group_net)
             return list_static_route
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             StaticRoute.db.rollback()
 
@@ -80,6 +80,6 @@ class StaticRoute:
                 list_static_route.append(static_route)
             return list_static_route
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             StaticRoute.db.rollback()

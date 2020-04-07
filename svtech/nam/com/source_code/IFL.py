@@ -1,13 +1,13 @@
 import MySQLdb
 
-import Database
-import Utils
+from .Database import Database
+from .Utils import Utils
 
 
 class INTERFACE_UNIT:
 
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, mx_ifd, unit1, bd_id, stitching):
         if mx_ifd is None:
@@ -31,7 +31,7 @@ class INTERFACE_UNIT:
             list_rows = INTERFACE_UNIT.cursor.fetchall()
             data = INTERFACE_UNIT.extract_data(list_rows, list_ifd)
             return data
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             INTERFACE_UNIT.db.rollback()
 
@@ -63,7 +63,7 @@ class INTERFACE_UNIT:
                     return row[0][0] + "." + str(row[0][1])
             else:
                 return ''
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             INTERFACE_UNIT.db.rollback()
 
@@ -77,7 +77,7 @@ class INTERFACE_UNIT:
             INTERFACE_UNIT.cursor.execute(sql)
             list_rows = INTERFACE_UNIT.cursor.fetchall()
             return list(map(lambda x: Utils.Utils.convert(x), list_rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             INTERFACE_UNIT.db.rollback()
 
@@ -103,8 +103,8 @@ class INTERFACE_UNIT:
 
 
 class IFL:
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, ip="", unit="", bd_id="", vrf_name="", ip_helper=""):
         self.ip = ip
@@ -140,6 +140,6 @@ class IFL:
             IFL.cursor.execute(sql)
             rows = IFL.cursor.fetchall()
             return list(map(lambda x: IFL(x[0], x[1], x[2], x[3], x[4]), rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             IFL.db.rollback()

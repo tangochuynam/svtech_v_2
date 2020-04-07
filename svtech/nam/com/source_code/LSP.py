@@ -1,12 +1,12 @@
 import MySQLdb
 
-import Database
+from .Database import Database
 
 
 class LSP:
     hostname = ""
-    db = Database.Database.db
-    cursor = Database.Database.cursor
+    db = Database.db
+    cursor = Database.cursor
 
     def __init__(self, name="", dest="", pri_path="", bk_path="",
                  bk_path_org=False, bk_host_stb=False, admin_status=True, dest_name=""):
@@ -30,7 +30,7 @@ class LSP:
             LSP.cursor.execute(sql)
             rows = LSP.cursor.fetchall()
             return list(map(lambda x: LSP.create_lsp_obj(x), rows))
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
 
     @staticmethod
@@ -44,18 +44,18 @@ class LSP:
             #print("Sql: " + str(sql))
             LSP.cursor.execute(sql)
             row = LSP.cursor.fetchall()
-            print 'Row:',row
+            print ('Row:',row)
             if len(row) > 0:
                 dest_name = row[0][0]
             else:
                 dest_name=lsp.dest
                 #raise ValueError('can not get dest_hostname in class LSP')
-            print dest_name
+            print (dest_name)
             lsp.dest_name = dest_name
             lsp.number = lsp.name.split('/')[2]
             lsp.get_list_path_pri()
             lsp.get_list_path_second()
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             LSP.db.rollback()
         finally:
@@ -74,7 +74,7 @@ class LSP:
                 self.lst_path_pri = lst_path_info
             else:
                 raise ValueError('pri_path not found in path_detail in class LSP')
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             LSP.db.rollback()
 
@@ -90,7 +90,7 @@ class LSP:
                 self.lst_path_second = lst_path_info
             else:
                 print("second path not found ")
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             print (e)
             LSP.db.rollback()
 
