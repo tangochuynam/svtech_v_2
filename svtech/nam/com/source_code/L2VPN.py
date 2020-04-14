@@ -117,6 +117,7 @@ class L2VPN:
                 sql_query = " select Peer, VC_ID, UPE, BK_Peer, BK_vc_id from l2vpn " \
                             "where Name = '%s' and HostName = '%s' " \
                             % (vsi.name, hostname)
+                print('line 120 in l2vpn.py:',sql_query)
                 L2VPN.cursor.execute(sql_query)
                 list_rows = L2VPN.cursor.fetchall()
                 # get list of interface_unit from IFL table and IFD table
@@ -128,9 +129,14 @@ class L2VPN:
                 list_l2vpn.append(data)
             return list_l2vpn
         except MySQLdb.Error as e:
-            print (e)
+            #sua loi khong tim thay db sql 10/4/2020
+            if e.args[0]== 1064:
+                print("line 133 in l2vpn.py:", e)
+                return list_l2vpn
+            else:
             # rollback in case there is any error
-            L2VPN.db.rollback()
+                print("line 137 in l2vpn.py:", e)
+                L2VPN.db.rollback()
 
     @staticmethod
     def query_data_ccc(hostname, list_ifd, router_type):

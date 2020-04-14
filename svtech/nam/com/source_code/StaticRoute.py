@@ -1,6 +1,8 @@
 import MySQLdb
 import ipaddress as ip
 
+from numpy.core import unicode
+
 from Database import Database
 
 
@@ -52,6 +54,7 @@ class StaticRoute:
                       "where static_route.Hostname = '%s' and static_route.VRF_Name = '%s' and static_route.Net = '%s'" \
                       % (hostname, vrf_name, net)
                 StaticRoute.cursor.execute(sql)
+                #print("line 57 in staticroute.py",sql)
                 # convert net_cisco to net_juniper
                 if " " in net:
                     host, subnet = net.strip().split()
@@ -61,18 +64,19 @@ class StaticRoute:
                     network_ipv4 = net.strip()
                 static_route = StaticRoute(str(network_ipv4))
                 list_rows = StaticRoute.cursor.fetchall()
-                #print list_rows
+                #print("line 67 in staticroute.py",list_rows)
                 for row in list_rows:
                     temp_multi = 3
                     temp_min =10
-                    if row[2] >0:
-                        temp_multi = row[2]
-                    elif row[2] is None:
+                    if row[2] is None:
                         temp_multi = 0
-                    if row[3]>0:
-                       temp_min = row[3]
-                    elif row[3] is None:
+                    elif row[2]>0:
+                        temp_multi = row[2]
+                    if row[3] is None:
                         temp_min = 0
+                    elif row[3]>0:
+                       temp_min = row[3]
+
                     #print 'Multi:',temp_multi
                     #print 'Min_tx:',temp_min
                     nh_ad = NH_AD(row[0], row[1], temp_multi, temp_min)

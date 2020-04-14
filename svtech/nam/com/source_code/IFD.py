@@ -5,6 +5,7 @@ from Database import Database
 from Utils import Utils
 import netaddr
 from CFGROUTER import POLICYMAP
+from numpy.core import unicode
 
 class IFD:
     db = Database.db
@@ -90,12 +91,19 @@ class IFD:
     def query_data_df(hostname, vrf_df_dict):
         try:
             dict_irb = {}
+            #bo dk IFD='Vlanif' trong sql ngay 9/4/2020
+
             for key in vrf_df_dict:
-                sql = "select Unit from ifl " \
-                      "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif' " % (hostname,key)
+                #print('line 97 in IFD.py:',key)
+                #sql = "select Unit from ifl " \
+                #      "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif' " % (hostname,key)
+                sql = "select Unit from IFL " \
+                      "where Hostname = '%s' and VRF_Name = '%s' " \
+                      "group by Unit" % (hostname,key.decode())
+                #print("line 100 in ifd.py", sql)
                 IFD.cursor.execute(sql)
                 list_rows = IFD.cursor.fetchall()
-                print (key,':',list_rows)
+                #print("line 99 in ifd.py",key,':',list_rows)
                 if len(list_rows) > 0:
                     dict_irb[list_rows[0][0]] = vrf_df_dict[key]
             return dict_irb
@@ -365,8 +373,7 @@ class IFD:
                 self.list_unit = [UNIT()]
             else:
                 self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
-                #print self.list_bd_id_dup
-
+                #print("line 368 in ifd.py:",irb_df_dict)
                 list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used, irb_df_dict), list_rows))
                 # filter nhung phan tu None trong list_unit_temp
                 self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))

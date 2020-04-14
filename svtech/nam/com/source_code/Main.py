@@ -25,8 +25,8 @@ class Main:
         self.db = Database.db
         # prepare a cursor object using cursor() method
         self.cursor = Database.cursor
-        self.path_input = "configuration_template"
-        self.path_output = "configuration_created"
+        self.path_input = "C:/Users/hunglnm/Documents/VNPT/svtech_v_2_n/svtech/nam/com/configuration_template"
+        self.path_output = "C:/Users/hunglnm/Documents/VNPT/svtech_v_2_n/svtech/nam/com/configuration_created"
         #self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"
         #self.path_output = "/Users/tnhnam/Desktop/du an anh P/router_config"
 
@@ -55,7 +55,7 @@ class Main:
         check_continute = 'y'
         #'THA02SSN','LSN99LLI'
         #'LSN00LLI','THA00THA'
-        for hostname in ['DBN00TLC']:
+        for hostname in ['HDG01HDG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -63,7 +63,6 @@ class Main:
             # ADD new code HERE
             lst_log_server = Server.get_list_log_server(hostname)
             list_lsp = LSP.query_data(hostname)
-
             list_unit_vlan_policer = router.get_list_unit_vlan_policer()
             list_bd_id_ip = router.get_list_bd_id_ip()
             #print ("list_bdid")
@@ -93,6 +92,7 @@ class Main:
             #move from line 82 to line 89 at Sep-22
             dict_policy_map_used = {}
             vrf_df_dict = VRF.query_data_df(hostname)
+            #print('line 96 in manin.py:',vrf_df_dict)
             irb_df_dict = IFD.query_data_df(hostname,vrf_df_dict)
             #print irb_df_dict
             list_ifd = IFD.query_data(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used,
@@ -104,7 +104,7 @@ class Main:
 
             #print 'vrf list:',vrf_service_list
             vrfie_list = VRFIE.query_data(vrf_service_list)
-            #print vrfie_list
+            #print("line 107 trong vrfie:",vrfie_list)
             list_all_extomm_from_VRFIE = VRFIE.get_all_extcomm(vrfie_list)
 
             # get_list_acl
@@ -115,6 +115,7 @@ class Main:
             neighbor_list = NEIGHBOR.query_data(hostname, list_ifd)
             # L2VPN
             l2vpn_list = L2VPN.query_data(hostname, list_ifd, router.type)
+            #print('line 118 in main.py:',l2vpn_list)
             l2vpn_list_local = L2VPN.query_vlan_local(hostname, list_bd_id_ip)
 
             #bo sung ngay 22/9
@@ -154,7 +155,7 @@ class Main:
                           lst_neighbor_group_rr, lst_neighbor_group_clients, lst_neighbor_group_option_b,
                           event_time, lst_log_server, list_lsp, lst_bgp_huawei,
                           list_mgmt_acl,list_static_global,dict_policy_map_used,list_ccc, dict_exp_isis,
-                         file_name_1, self.path_input, self.path_output, hostname)
+                         file_name_2, self.path_input, self.path_output, hostname)
             #check_continute = raw_input("Do you want to continute: ")
             #if check_continute != 'y':
             #    break

@@ -41,11 +41,17 @@ class VRFIE:
                 # print ("hostname: " + hostname + " vrfname :" + vrf_name)
 
                 # select default export data from pair (hostname and vrf_name)
-
-                list_rows_df_exp = vrf.exp_extcom.split()
+                #them if not None line 45 ngay 7/4/2020 trong vrfie.py
+                #print("line 44 trong vrfie.py:",hostname,vrf_name,vrf.exp_extcom)
+                if vrf.exp_extcom is not None:
+                    list_rows_df_exp = vrf.exp_extcom.split()
+                else:
+                    list_rows_df_exp = []
                 # select default import data from pair (hostname and vrf_name)
-                list_rows_df_imp = vrf.imp_extcom.split()
-
+                if vrf.imp_extcom is not None:
+                    list_rows_df_imp = vrf.imp_extcom.split()
+                else:
+                    list_rows_df_imp=[]
                 # select export map data from pair (hostname and vrf_name)
                 sql_query_exp = "select Name, Seq, ACL, Protocol, Route_filter, Action from vrf_ie " \
                                 "where Hostname = '%s' and VRF_Name = '%s' " \

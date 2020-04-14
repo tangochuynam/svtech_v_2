@@ -257,8 +257,10 @@ class POLICYMAP:
     @staticmethod
     def get_mf_list(info, hostname):
         try:
-            sql = "select Name, Class, 8021p,DSCP,Set_1p,Set_dscp,Set_prec_transmit,Set_EXP,FC,LP from policy_map " \
-                  "where Hostname = '%s' and CIR= 0 and Name = '%s' and ACL=''" % (hostname, info)
+            sql = "select Name, Class, 8021p, DSCP, Set_1p, Set_dscp, Set_prec_transmit, Set_EXP,FC,LP "\
+                    "from policy_map " \
+                  "where Hostname = '%s' and CIR= 0 and Name = '%s' and ACL=''" % (hostname, info.decode())
+            #print("line 262 trong cfgrouter.py:", sql)
             POLICYMAP.cursor.execute(sql)
             list_rows = POLICYMAP.cursor.fetchall()
             list_mf = []
@@ -267,13 +269,13 @@ class POLICYMAP:
                 list_mf = list(map(lambda x: MF.insert_mf(x), list_rows))
             return list_mf
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
 
     @staticmethod
     def get_acl_list(info, hostname):
         try:
             sql = "select Name, Class, ACL from policy_map " \
-                  "where Hostname = '%s' and CIR= 0 and Name = '%s' and ACL!=''" % (hostname, info)
+                  "where Hostname = '%s' and CIR= 0 and Name = '%s' and ACL!=''" % (hostname, info.decode())
             POLICYMAP.cursor.execute(sql)
             list_rows = POLICYMAP.cursor.fetchall()
             list_acl = []

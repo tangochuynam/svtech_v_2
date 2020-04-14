@@ -11,6 +11,7 @@ from DHCP import DHCP
 from IFL import INTERFACE_UNIT
 from StaticRoute import StaticRoute
 
+from numpy.core import unicode
 
 class SERVERGROUP:
     def __init__(self, name, list_helper, name_intf, list_interface):
@@ -231,7 +232,8 @@ class VRF:
 
         for row in list_rows:
             data = VRF()
-            name = row[0]
+            name = row[0].decode()
+            #print("line 236 trong vrf.py:", name)
             if ('(' in name) | (')' in name)| ('&' in name) | ('"' in name):
                 data.name_out = '-'.join(re.split("[()&\"]", name))
             else:
@@ -305,6 +307,7 @@ class VRF:
                              'list_ccc':list_ccc,
                              'dict_exp_isis':dict_exp_isis}
         file_ouput = path_output + "/" + hostname + "-" + '-'.join(str(datetime.datetime.now()).split(":")) + ".txt"
+        print('line 310 in vrf.py:',routing_instances)
         with open(file_ouput, 'w') as f:
             f_txt = template_env.get_template(file_name).render(routing_instances)
             f.write(f_txt)

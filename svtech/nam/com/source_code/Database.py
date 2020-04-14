@@ -2,7 +2,7 @@ import MySQLdb
 
 
 class Database(object):
-    db = MySQLdb.connect("localhost", "tangochuynam", "Namvodich2212", "vnpt")
+    db = MySQLdb.connect("localhost", "root", "123456", "vnpt")
     cursor = db.cursor()
 
     def __init__(self):
