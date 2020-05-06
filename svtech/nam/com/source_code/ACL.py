@@ -1,7 +1,7 @@
 import MySQLdb
 import ipaddress as ip
 from Database import Database
-
+from numpy.core import unicode
 
 class ACL:
     db = Database.db

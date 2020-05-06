@@ -241,7 +241,8 @@ class IFD:
                 tmp_policy_map.family_type = 'l2circuit'
                 dict_policy_map_used[tmp_unit.ff_out + '/l2circuit'] = tmp_policy_map
         else:
-            #print 'Tao policy map cho l3', tmp_unit.unit1, tmp_unit.ifd
+            #if tmp_unit.ff_in!='':
+            #    print('Line 244 in ifd.py:', tmp_unit.unit1, tmp_unit.ifd,tmp_unit.ff_in,dict_policy_map[tmp_unit.ff_in])
             if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/inet') not in dict_policy_map_used):
                 print('Dang tao policy map cho l3')
                 tmp_policy_map = POLICYMAP(tmp_unit.ff_in)

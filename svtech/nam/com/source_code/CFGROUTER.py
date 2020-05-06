@@ -80,7 +80,7 @@ class CFGROUTER:
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             # print list_rows
-            dict_policy_map = {x[0]: POLICYMAP.insert_item(x[0], CFGROUTER.hostname) for x in list_rows}
+            dict_policy_map = {x[0].decode(): POLICYMAP.insert_item(x[0], CFGROUTER.hostname) for x in list_rows}
             self.dict_policy_map = dict_policy_map
         except MySQLdb.Error as e:
             print (e)

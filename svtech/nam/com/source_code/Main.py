@@ -55,7 +55,7 @@ class Main:
         check_continute = 'y'
         #'THA02SSN','LSN99LLI'
         #'LSN00LLI','THA00THA'
-        for hostname in ['HDG01HDG']:
+        for hostname in ['HDG03NGG']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -88,7 +88,7 @@ class Main:
 
             list_policer = POLICER.query_policer(hostname)
             cfg_router = CFGROUTER().query_cfg_router(hostname, router.type)
-
+            #print('Line 91 in main.py:',cfg_router.dict_policy_map)
             #move from line 82 to line 89 at Sep-22
             dict_policy_map_used = {}
             vrf_df_dict = VRF.query_data_df(hostname)
