@@ -16,7 +16,7 @@ from LSP import LSP
 from StaticRoute import StaticRoute
 import time
 import random
-
+from pathlib import Path
 
 class Main:
 
@@ -25,10 +25,8 @@ class Main:
         self.db = Database.db
         # prepare a cursor object using cursor() method
         self.cursor = Database.cursor
-        self.path_input = "C:/Users/hunglnm/Documents/VNPT/svtech_v_2_n/svtech/nam/com/configuration_template"
-        self.path_output = "C:/Users/hunglnm/Documents/VNPT/svtech_v_2_n/svtech/nam/com/configuration_created"
-        #self.path_input = "/Users/tnhnam/Desktop/du an anh P/template"
-        #self.path_output = "/Users/tnhnam/Desktop/du an anh P/router_config"
+        self.path_input = Path(__file__).parent.parent.joinpath("configuration_template")
+        self.path_output = Path(__file__).parent.parent.joinpath("configuration_created")
 
     def main(self):
 

@@ -306,7 +306,7 @@ class VRF:
                              'dict_policy_map_used':dict_policy_map_used,
                              'list_ccc':list_ccc,
                              'dict_exp_isis':dict_exp_isis}
-        file_ouput = path_output + "/" + hostname + "-" + '-'.join(str(datetime.datetime.now()).split(":")) + ".txt"
+        file_ouput = path_output.joinpath(hostname + "-" + '-'.join(str(datetime.datetime.now()).split(":")) + ".txt")
         print('line 310 in vrf.py:',routing_instances)
         with open(file_ouput, 'w') as f:
             f_txt = template_env.get_template(file_name).render(routing_instances)
