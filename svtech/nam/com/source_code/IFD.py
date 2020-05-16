@@ -22,7 +22,7 @@ class IFD:
 
     def __init__(self, name, description, mtu, flex_service, parent_link,
                  ae_type, ae_mode, wanphy, speed, mx_ifd,
-                 type_tmp, admin_status = True, native_vlan=''):
+                 type_tmp, admin_status=True, native_vlan=''):
         self.name = name
         if '"' in description:
             self.description = ''.join(e for e in description.split('"'))
@@ -84,7 +84,36 @@ class IFD:
             list_ifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_ifd), list_ifd))
             return list_ifd
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
+            IFD.db.rollback()
+
+    @staticmethod
+    def query_data_mx(hostname, flag_create_notation, dict_policy_map, dict_policy_map_used, irb_df_dict):
+        try:
+            IFD.hostname = hostname
+            IFD.flag_create_notation = flag_create_notation
+            # print ("list_policy_cos: " + str(len(list_policy_cos)))
+
+            sql = "select Name, Description, MTU, Flex_service, Parent_link, AE_type, AE_mode, Wanphy, " \
+                  "Speed, MX_IFD, Type, Admin_status, Native_vlan " \
+                  "from ifd " \
+                  "where Hostname = '%s'" % hostname
+            IFD.cursor.execute(sql)
+            list_rows = IFD.cursor.fetchall()
+            # print ("length_row: " + str(len(list_rows)))
+            list_ifd = list(map(lambda x: IFD(x[0], x[1], int(x[2]), x[3], x[4], x[5],
+                                              x[6], x[7], x[8], x[9] if x[9] is not None else x[0], x[10], x[11],
+                                              x[12]), list_rows))
+
+            for ifd in list_ifd:
+                # print("ifd_mxifd: " + ifd.mx_ifd)
+                ifd.insert_unit(dict_policy_map, dict_policy_map_used, irb_df_dict)
+
+            # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
+            list_ifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_ifd), list_ifd))
+            return list_ifd
+        except MySQLdb.Error as e:
+            print(e)
             IFD.db.rollback()
 
     @staticmethod
@@ -284,8 +313,8 @@ class IFD:
             if (ifd.name != 'Vlan') & (ifd.name != 'Loopback') & (unit.bd_id != ''):
                 if unit.bd_id in IFD.list_bd_id_ip:
                     unit.flag_bdid = False
-                if unit.unit1 == 525:
-                    print ("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
+                #if unit.unit1 == 525:
+                #    print ("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
 
             # add more attribute
             
