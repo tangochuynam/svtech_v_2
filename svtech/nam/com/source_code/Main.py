@@ -93,7 +93,7 @@ class Main:
             #print('line 96 in manin.py:',vrf_df_dict)
             irb_df_dict = IFD.query_data_df(hostname, vrf_df_dict)
             #print irb_df_dict
-            list_ifd = IFD.query_data(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used,
+            list_ifd = IFD.query_data_new(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used,
                                       irb_df_dict)
             #list static route global 18/9
             list_static_global = StaticRoute.query_data(hostname, '')

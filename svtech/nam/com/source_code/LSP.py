@@ -44,13 +44,13 @@ class LSP:
             #print("Sql: " + str(sql))
             LSP.cursor.execute(sql)
             row = LSP.cursor.fetchall()
-            print ('Row:',row)
+            # print ('Row:',row)
             if len(row) > 0:
                 dest_name = row[0][0]
             else:
                 dest_name=lsp.dest
                 #raise ValueError('can not get dest_hostname in class LSP')
-            print (dest_name)
+            # print (dest_name)
             lsp.dest_name = dest_name
             lsp.number = lsp.name.split('/')[2]
             lsp.get_list_path_pri()

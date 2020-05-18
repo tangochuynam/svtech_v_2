@@ -1,11 +1,13 @@
 import MySQLdb
 import ipaddr
 from jinja2 import Environment, FileSystemLoader
-from Database import Database
 from Utils import Utils
 import netaddr
 from CFGROUTER import POLICYMAP
 from numpy.core import unicode
+import const
+from Database import Database
+import time
 
 class IFD:
     db = Database.db
@@ -48,10 +50,11 @@ class IFD:
         self.flag_core = False
         self.list_bd_id_dup = []
         self.flag_ccc = False
+        self.counter = const.counter
 
     @staticmethod
     def set_class_paras(iso_address, list_bd_id_igmp, list_bd_id_l2vpn,
-                            list_unit_vlan_policer, list_bd_id_ip, router_type, lst_dhcp_relay):
+                        list_unit_vlan_policer, list_bd_id_ip, router_type, lst_dhcp_relay):
         IFD.iso_address = iso_address
         IFD.list_bd_id_igmp = list_bd_id_igmp
         IFD.list_bd_id_l2vpn = list_bd_id_l2vpn
@@ -65,35 +68,7 @@ class IFD:
         try:
             IFD.hostname = hostname
             IFD.flag_create_notation = flag_create_notation
-            #print ("list_policy_cos: " + str(len(list_policy_cos)))
-            sql = "select Name, Description, MTU, Flex_service, Parent_link, AE_type, AE_mode, Wanphy, " \
-                  "Speed, MX_IFD, Type, Admin_status, Native_vlan " \
-                  "from ifd " \
-                  "where Hostname = '%s'" % hostname
-            IFD.cursor.execute(sql)
-            list_rows = IFD.cursor.fetchall()
-            #print ("length_row: " + str(len(list_rows)))
-            list_ifd = list(map(lambda x: IFD(x[0], x[1], int(x[2]), x[3], x[4], x[5],
-                                              x[6], x[7], x[8], x[9] if x[9] is not None else x[0], x[10], x[11], x[12]), list_rows))
-
-            for ifd in list_ifd:
-                #print("ifd_mxifd: " + ifd.mx_ifd)
-                ifd.insert_unit(dict_policy_map, dict_policy_map_used, irb_df_dict)
-
-            # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
-            list_ifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_ifd), list_ifd))
-            return list_ifd
-        except MySQLdb.Error as e:
-            print(e)
-            IFD.db.rollback()
-
-    @staticmethod
-    def query_data_mx(hostname, flag_create_notation, dict_policy_map, dict_policy_map_used, irb_df_dict):
-        try:
-            IFD.hostname = hostname
-            IFD.flag_create_notation = flag_create_notation
             # print ("list_policy_cos: " + str(len(list_policy_cos)))
-
             sql = "select Name, Description, MTU, Flex_service, Parent_link, AE_type, AE_mode, Wanphy, " \
                   "Speed, MX_IFD, Type, Admin_status, Native_vlan " \
                   "from ifd " \
@@ -117,27 +92,173 @@ class IFD:
             IFD.db.rollback()
 
     @staticmethod
+    def query_data_new(hostname, flag_create_notation, dict_policy_map, dict_policy_map_used, irb_df_dict):
+        try:
+            IFD.hostname = hostname
+            IFD.flag_create_notation = flag_create_notation
+            # print ("list_policy_cos: " + str(len(list_policy_cos)))
+
+            sql = "SELECT MX_IFD " \
+                  "from ifd " \
+                  "where Hostname = '%s'and MX_IFD is not null and MX_IFD != ''" \
+                  "group by MX_IFD" % hostname
+            IFD.cursor.execute(sql)
+            mx_ifd_rows = IFD.cursor.fetchall()
+            # print ("length_row: " + str(len(list_rows)))
+            mxifds = list(map(lambda x: x[0], mx_ifd_rows))
+            list_mxifd = []
+            for mxifd in mxifds:
+                print("mxifd: " + str(mxifd))
+                sql = "select Name, Description, MTU, Flex_service, Parent_link, AE_type, AE_mode, Wanphy, " \
+                      "Speed, MX_IFD, Type, Admin_status, Native_vlan " \
+                      "from ifd " \
+                      "where Hostname = '%s' and MX_IFD = '%s'" % (hostname, mxifd)
+
+                IFD.cursor.execute(sql)
+                rows = IFD.cursor.fetchall()
+                if len(rows) > 1:
+                    ifd = IFD(mxifd, const.description, const.mtu, const.flex_service, const.parent_link,
+                              const.ae_type, const.ae_mode, const.wanphy, const.speed, mxifd,
+                              const.type, const.admin_status, const.native_plan)
+                    for row in rows:
+                        ifd.insert_unit_from_multiple_ge(row, dict_policy_map, dict_policy_map_used, irb_df_dict)
+                    list_mxifd.append(ifd)
+                else:
+                    x = rows[0]
+
+                    ifd = IFD(x[0], x[1], int(x[2]), x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12])
+                    # print("parent_link: " + ifd.parent_link)
+                    ifd.insert_unit(dict_policy_map, dict_policy_map_used, irb_df_dict)
+                    list_mxifd.append(ifd)
+
+            # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
+            list_mxifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_mxifd), list_mxifd))
+            return list_mxifd
+        except MySQLdb.Error as e:
+            print(e)
+            IFD.db.rollback()
+
+    def insert_unit_from_multiple_ge(self, mx_ifd_info, dict_policy_map, dict_policy_map_used, irb_df_dict):
+        self.name = mx_ifd_info[0]
+        sql = "select Unit1, Description, Service, SVLAN, CVLAN, Vlan_mapping, " \
+              "Vlan_translate, Vlan_map_svlan, Vlan_map_cvlan, Service_pol_in, Service_pol_out, " \
+              "MTU, BD_ID, IP, Split_horizon, FF_in, " \
+              "MPLS, Admin_status, Switch_mode, IP_helper, " \
+              "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
+              "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
+              "VRRP_reduce,Trust_upstream,Routing_type " \
+              "from ifl " \
+              "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
+        IFD.cursor.execute(sql)
+        rows = IFD.cursor.fetchall()
+        if len(rows) > 0:
+            for row in rows:
+                case_match = False
+                unit_curr = IFD.convert_info_unit1(row, self, dict_policy_map, dict_policy_map_used, irb_df_dict)
+                # print("unit_curr UNIT1: " + str(unit_curr.unit1))
+                # print("ifd name: " + self.name)
+                # time.sleep(1)
+                if len(self.list_unit) == 0:
+                    self.list_unit.append(unit_curr)
+                else:
+                    for added_u in self.list_unit:
+                        case = added_u.compare_unit(unit_curr)
+                        if (case == 1) or (case == 2) or (case == 3):
+                            case_match = True
+                            if case == 1:
+                                added_u.cvlan += ", " + unit_curr.cvlan
+                                print("case 1")
+                            if case == 2:
+                                added_u.svlan += ", " + unit_curr.svlan
+                                print("case 2")
+                            if case == 3:
+                                added_u.ip.extend(unit_curr.ip)
+                                print("case 3")
+                            if unit_curr.description != '':
+                                added_u.description += ", " + unit_curr.description
+                            added_u.old_ifl.extend(unit_curr.old_ifl)
+                            break
+                        if case == 4:
+                            print("case 4")
+                            case_match = True
+                            # time.sleep(1)
+                            # print("unit1 added_u: " + str(added_u.unit1))
+                            # print("unit1 new unit: " + str(unit_curr.unit1))
+                            added_u.unit1 = self.counter
+                            self.list_unit.append(unit_curr)
+                            self.counter += 1
+                            break
+                        if case == 5:
+                            continue
+                    if not case_match:
+                        # if unit_curr is not in case 1,2,3,4 for all old unit, add this new unit to list_unit
+                        print("case 5")
+                        self.list_unit.append(unit_curr)
+
+    def insert_unit(self, dict_policy_map, dict_policy_map_used, irb_df_dict):
+        try:
+            # print("insert_unit_to " + "ifd_mxifd: " + ifd.mx_ifd + " flag_default: " + str(ifd.flag_default) + " flag_l2circuit: "
+            #      + str(ifd.flag_default_l2circuit) + " flag_vpls: " + str(ifd.flag_default_vpls)
+            #      + " flag_svlan_untagged: " + str(ifd.flag_svlan_untagged) + " parent_link: " + ifd.parent_link)
+
+            sql = "select Unit1, Description, Service, SVLAN, CVLAN, Vlan_mapping, " \
+                  "Vlan_translate, Vlan_map_svlan, Vlan_map_cvlan, Service_pol_in, Service_pol_out, " \
+                  "MTU, BD_ID, IP, Split_horizon, FF_in, " \
+                  "MPLS, Admin_status, Switch_mode, IP_helper, " \
+                  "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
+                  "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
+                  "VRRP_reduce,Trust_upstream,Routing_type " \
+                  "from ifl " \
+                  "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
+            IFD.cursor.execute(sql)
+            list_rows = IFD.cursor.fetchall()
+
+            sql = "select BD_ID,count(BD_ID) from ifl where hostname='%s' and " \
+                  "IFD = '%s' and BD_ID!='' group by BD_ID" % (IFD.hostname, self.name)
+            IFD.cursor.execute(sql)
+            list_rows_1 = IFD.cursor.fetchall()
+            # print list_rows_1
+            self.check_ccc_eth()
+            if self.flag_ccc:
+                self.list_unit = [UNIT()]
+            else:
+                self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
+                # print("line 368 in ifd.py:",irb_df_dict)
+                list_unit_temp = list(
+                    map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used, irb_df_dict),
+                        list_rows))
+                # filter nhung phan tu None trong list_unit_temp
+                self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
+                # bo sung vao list_unit truong hop loopback cho dhcp relay
+                # self.insert_to_list_unit_dhcp_relay()
+                # check special case (ccc)
+
+        except MySQLdb.Error as e:
+            print(e)
+            IFD.db.rollback()
+
+    @staticmethod
     def query_data_df(hostname, vrf_df_dict):
         try:
             dict_irb = {}
-            #bo dk IFD='Vlanif' trong sql ngay 9/4/2020
+            # bo dk IFD='Vlanif' trong sql ngay 9/4/2020
 
             for key in vrf_df_dict:
-                #print('line 97 in IFD.py:',key)
-                #sql = "select Unit from ifl " \
+                # print('line 97 in IFD.py:',key)
+                # sql = "select Unit from ifl " \
                 #      "where Hostname = '%s' and VRF_Name = '%s' and IFD='Vlanif' " % (hostname,key)
                 sql = "select Unit from IFL " \
                       "where Hostname = '%s' and VRF_Name = '%s' " \
-                      "group by Unit" % (hostname,key.decode())
-                #print("line 100 in ifd.py", sql)
+                      "group by Unit" % (hostname, key.decode())
+                # print("line 100 in ifd.py", sql)
                 IFD.cursor.execute(sql)
                 list_rows = IFD.cursor.fetchall()
-                #print("line 99 in ifd.py",key,':',list_rows)
+                # print("line 99 in ifd.py",key,':',list_rows)
                 if len(list_rows) > 0:
                     dict_irb[list_rows[0][0]] = vrf_df_dict[key]
             return dict_irb
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             IFD.db.rollback()
 
     @staticmethod
@@ -175,7 +296,7 @@ class IFD:
                 if unit.bd_id in IFD.list_bd_id_ip:
                     unit.flag_bdid = False
                 if unit.unit1 == 525:
-                    print ("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
+                    print("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
 
             # add more attribute
             unit.split_horizon = info[14]
@@ -191,14 +312,14 @@ class IFD:
             unit.dhcp_gw = info[25]
             unit.classifier = Utils.change_name_classifier(info[26])
             unit.df_classifier = Utils.change_name_classifier(info[27])
-            unit.arp_exp = info[28]/60
+            unit.arp_exp = info[28] / 60
             if (unit.ip == '') and (info[29]):
                 unit.trust_1p = info[29]
             if unit.bd_id in ifd.list_bd_id_dup:
-                unit.bd_dup_notation=True
+                unit.bd_dup_notation = True
             # only get the unit from IFD.list_unit_vlan_policer
             unit.get_spi_spo(IFD.list_unit_vlan_policer)
-            #unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
+            # unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
             # flag_create_notation is used or not
             if IFD.flag_create_notation:
                 unit.get_list_unit_remote(ifd.name, IFD.hostname)
@@ -212,36 +333,36 @@ class IFD:
             return None
 
     @staticmethod
-    def find_mx_ifd(info,hostname):
+    def find_mx_ifd(info, hostname):
         try:
 
             sql = "select IFD.mx_ifd,IFL.Unit1 from ifl inner join ifd on ifd.name=ifl.ifd and ifd.hostname=ifl.hostname " \
                   "where (left('%s',position('.' in '%s')-1)= ifl.IFD) and " \
                   "(right('%s',length('%s')-position('.' in '%s')) = " \
-                  "Convert(ifl.Unit,CHAR(45))) and ifl.hostname='%s'" % (info,info,info,info,info,hostname)
+                  "Convert(ifl.Unit,CHAR(45))) and ifl.hostname='%s'" % (info, info, info, info, info, hostname)
             IFD.cursor.execute(sql)
             list_rows = IFD.cursor.fetchall()
-            new_ifl=list_rows[0][0]+'.'+str(list_rows[0][1])
+            new_ifl = list_rows[0][0] + '.' + str(list_rows[0][1])
             return new_ifl
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             IFD.db.rollback()
 
     @staticmethod
     def insert_policy_map_used(tmp_unit, dict_policy_map, dict_policy_map_used):
         tmp_policy_map = POLICYMAP()
-        if tmp_unit.service=='vpls':
-            #print 'Tao policy map cho vpls',tmp_unit.unit1 , tmp_unit.ifd
-            #print tmp_unit.ff_in, (tmp_unit.ff_in in dict_policy_map) , (tmp_unit.ff_in not in dict_policy_map_used)
+        if tmp_unit.service == 'vpls':
+            # print 'Tao policy map cho vpls',tmp_unit.unit1 , tmp_unit.ifd
+            # print tmp_unit.ff_in, (tmp_unit.ff_in in dict_policy_map) , (tmp_unit.ff_in not in dict_policy_map_used)
             if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/vpls') not in dict_policy_map_used):
-                #print 'Dang policy map cho vpls'
+                # print 'Dang policy map cho vpls'
                 tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
                 tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
                 tmp_policy_map.df_lp = 'low'
                 tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
                 tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
                 tmp_policy_map.family_type = 'vpls'
-                dict_policy_map_used[tmp_unit.ff_in+'/vpls'] = tmp_policy_map
+                dict_policy_map_used[tmp_unit.ff_in + '/vpls'] = tmp_policy_map
             if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out + '/vpls') not in dict_policy_map_used):
                 tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
                 tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
@@ -250,10 +371,10 @@ class IFD:
                 tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
                 tmp_policy_map.family_type = 'vpls'
                 dict_policy_map_used[tmp_unit.ff_out + '/vpls'] = tmp_policy_map
-        elif tmp_unit.service=='l2circuit':
-            #print 'Tao policy map cho l2circuit',tmp_unit.unit1 , tmp_unit.ifd
+        elif tmp_unit.service == 'l2circuit':
+            # print 'Tao policy map cho l2circuit',tmp_unit.unit1 , tmp_unit.ifd
             if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/l2circuit') not in dict_policy_map_used):
-                #print 'Dang tao policy map cho l2circuit'
+                # print 'Dang tao policy map cho l2circuit'
                 tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
                 tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
                 tmp_policy_map.df_lp = 'low'
@@ -270,7 +391,7 @@ class IFD:
                 tmp_policy_map.family_type = 'l2circuit'
                 dict_policy_map_used[tmp_unit.ff_out + '/l2circuit'] = tmp_policy_map
         else:
-            #if tmp_unit.ff_in!='':
+            # if tmp_unit.ff_in!='':
             #    print('Line 244 in ifd.py:', tmp_unit.unit1, tmp_unit.ifd,tmp_unit.ff_in,dict_policy_map[tmp_unit.ff_in])
             if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/inet') not in dict_policy_map_used):
                 print('Dang tao policy map cho l3')
@@ -280,8 +401,8 @@ class IFD:
                 tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
                 tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
                 tmp_policy_map.family_type = 'inet'
-                dict_policy_map_used[tmp_unit.ff_in+ '/inet'] = tmp_policy_map
-            if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out+ '/inet') not in dict_policy_map_used):
+                dict_policy_map_used[tmp_unit.ff_in + '/inet'] = tmp_policy_map
+            if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out + '/inet') not in dict_policy_map_used):
                 tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
                 tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
                 tmp_policy_map.df_lp = 'low'
@@ -289,7 +410,7 @@ class IFD:
                 tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
                 tmp_policy_map.family_type = 'inet'
                 tmp_policy_map.showdata()
-                dict_policy_map_used[tmp_unit.ff_out+ '/inet'] = tmp_policy_map
+                dict_policy_map_used[tmp_unit.ff_out + '/inet'] = tmp_policy_map
 
     @staticmethod
     def convert_info_unit1(info, ifd, dict_policy_map, dict_policy_map_used, irb_df_dict):
@@ -301,8 +422,8 @@ class IFD:
             # convert ip
             network = info[13]
             if network != '':
-                unit.ip = UNIT.insert_list_ip(info,IFD.hostname)
-                #print ifd.name, unit.ip,network
+                unit.ip = UNIT.insert_list_ip(info, IFD.hostname)
+                # print ifd.name, unit.ip,network
             svlan_temp = info[3]
             cvlan_temp = info[4]
             if (',' in svlan_temp) | ('-' in svlan_temp):
@@ -313,11 +434,11 @@ class IFD:
             if (ifd.name != 'Vlan') & (ifd.name != 'Loopback') & (unit.bd_id != ''):
                 if unit.bd_id in IFD.list_bd_id_ip:
                     unit.flag_bdid = False
-                #if unit.unit1 == 525:
+                # if unit.unit1 == 525:
                 #    print ("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
 
             # add more attribute
-            
+
             unit.split_horizon = info[14]
             unit.ff_in = info[15]
             unit.mpls = info[16]
@@ -327,12 +448,16 @@ class IFD:
             unit.igmp = info[21]
             unit.vsi_encap = info[22]
             unit.unit = info[23]
+
+            # 2020-05 new attribute
+            unit.old_ifl.append(ifd.name + "." + str(unit.unit))
+
             unit.ff_out = info[24]
             unit.dhcp_gw = info[25]
             unit.classifier = Utils.change_name_classifier(info[26])
             unit.df_classifier = Utils.change_name_classifier(info[27])
             if (ifd.name != 'Vlanif') and (unit.unit1 in irb_df_dict) and (unit.df_classifier == ''):
-                #if unit.unit1 == 3001:
+                # if unit.unit1 == 3001:
                 #    print "Truong hop unit 3001"
                 #    print irb_df_dict
                 #    print ifd.name, unit.unit
@@ -340,7 +465,7 @@ class IFD:
             unit.arp_exp = info[28] / 60
             if (unit.ip == '') and (info[29]):
                 unit.trust_1p = info[29]
-            #print 'info[36]:',info[36]
+            # print 'info[36]:',info[36]
             unit.trust_upstream = info[36]
             unit.routing_type = info[37]
             if unit.bd_id in ifd.list_bd_id_dup:
@@ -364,57 +489,18 @@ class IFD:
     def get_new_ifd_with_flex_service(self, list_ifd):
         if self.parent_link != '':
             name = ""
+            print("function flex service " + self.mx_ifd + "  " + self.name)
             if IFD.router_type == 'C76xx':
                 name = "Port-channel" + self.parent_link
             elif IFD.router_type == 'ASR9k':
                 name = "Bundle-Ether" + self.parent_link
             elif IFD.router_type == 'HW':
+                print("type parent link: " + str(type(self.parent_link)) + " value: " + str(self.parent_link))
                 name = "Eth-Trunk" + self.parent_link
-            #print ("name:" + name)
+            # print ("name:" + name)
             parent_of_ifd = list(filter(lambda ifd: name == ifd.name, list_ifd))
             self.flex_service = parent_of_ifd[0].flex_service
         return self
-
-    def insert_unit(self, dict_policy_map, dict_policy_map_used, irb_df_dict):
-        try:
-            #print("insert_unit_to " + "ifd_mxifd: " + ifd.mx_ifd + " flag_default: " + str(ifd.flag_default) + " flag_l2circuit: "
-            #      + str(ifd.flag_default_l2circuit) + " flag_vpls: " + str(ifd.flag_default_vpls)
-            #      + " flag_svlan_untagged: " + str(ifd.flag_svlan_untagged) + " parent_link: " + ifd.parent_link)
-
-            sql = "select Unit1, Description, Service, SVLAN, CVLAN, Vlan_mapping, " \
-                  "Vlan_translate, Vlan_map_svlan, Vlan_map_cvlan, Service_pol_in, Service_pol_out, " \
-                  "MTU, BD_ID, IP, Split_horizon, FF_in, " \
-                  "MPLS, Admin_status, Switch_mode, IP_helper, " \
-                  "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
-                  "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
-                  "VRRP_reduce,Trust_upstream,Routing_type " \
-                  "from ifl " \
-                  "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
-            IFD.cursor.execute(sql)
-            list_rows = IFD.cursor.fetchall()
-
-            sql = "select BD_ID,count(BD_ID) from ifl where hostname='%s' and " \
-                  "IFD = '%s' and BD_ID!='' group by BD_ID" % (IFD.hostname,self.name)
-            IFD.cursor.execute(sql)
-            list_rows_1 = IFD.cursor.fetchall()
-            #print list_rows_1
-            self.check_ccc_eth()
-            if self.flag_ccc:
-                self.list_unit = [UNIT()]
-            else:
-                self.list_bd_id_dup = list(map(lambda x: x[0], list(filter(lambda x: x[1] > 1, list_rows_1))))
-                #print("line 368 in ifd.py:",irb_df_dict)
-                list_unit_temp = list(map(lambda x: IFD.convert_info_unit1(x, self, dict_policy_map, dict_policy_map_used, irb_df_dict), list_rows))
-                # filter nhung phan tu None trong list_unit_temp
-                self.list_unit = list(filter(lambda x: x is not None, list_unit_temp))
-                # bo sung vao list_unit truong hop loopback cho dhcp relay
-                #self.insert_to_list_unit_dhcp_relay()
-                #check special case (ccc)
-
-
-        except MySQLdb.Error as e:
-            print (e)
-            IFD.db.rollback()
 
     def insert_to_list_unit_dhcp_relay(self):
         if (self.name == 'LoopBack') & (len(IFD.lst_dhcp_relay) > 0):
@@ -429,20 +515,20 @@ class IFD:
     def check_ccc_eth(self):
         try:
             sql_ccc_eth = "select IFD from ifl where Hostname = '%s' and IFD = '%s' and Service = 'ccc' " \
-                      % (IFD.hostname,self.name)
+                          % (IFD.hostname, self.name)
             IFD.cursor.execute(sql_ccc_eth)
             list_rows = IFD.cursor.fetchall()
-            if len(list_rows)>0:
+            if len(list_rows) > 0:
                 self.flag_ccc = True
 
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             IFD.db.rollback()
 
     def check_special_case(self, hostname):
         try:
 
-            #print("in_check_special_case: " + " ifd_mxifd: " + ifd.mx_ifd + " flag_default: " + str(ifd.flag_default) + " flag_default_l2circuit: "
+            # print("in_check_special_case: " + " ifd_mxifd: " + ifd.mx_ifd + " flag_default: " + str(ifd.flag_default) + " flag_default_l2circuit: "
             #      + str(ifd.flag_default_l2circuit) + " flag_default_vpls: " + str(ifd.flag_default_vpls)
             #      + " flag_svlan_untagged: " + str(ifd.flag_svlan_untagged) + " parent_link: " + ifd.parent_link)
 
@@ -488,7 +574,7 @@ class IFD:
                 self.flag_svlan_untagged = True
                 return 1
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             IFD.db.rollback()
 
     @staticmethod
@@ -509,7 +595,7 @@ class UNIT:
     def __init__(self, unit1=0, description="", service="", svlan="", cvlan="", vlan_mapping="",
                  vlan_translate="", vlan_map_svlan="", vlan_map_cvlan="",
                  service_pol_in="", service_pol_out="", mtu=0, bd_id=""):
-        self.unit1 = unit1      #type int
+        self.unit1 = unit1  # type int
         if '"' in description:
             self.description = ''.join(e for e in description.split('"'))
         else:
@@ -528,8 +614,8 @@ class UNIT:
         self.split_horizon = False
         self.svlan_list = ""
         self.cvlan_list = ""
-        #self.ip = ""
-        self.ip =[]
+        # self.ip = ""
+        self.ip = []
         self.flag_bdid = True
         self.flag_bd_id_l2vpn = False
         self.flag_cos = False
@@ -550,40 +636,57 @@ class UNIT:
         self.list_unit_remote = []
         self.classifier = ''
         self.df_classifier = ''
-        self.arp_exp=0
+        self.arp_exp = 0
         self.trust_1p = False
-        self.bd_dup_notation=False
+        self.bd_dup_notation = False
         self.trust_upstream = False
         self.routing_type = ''
+        self.old_ifl = []
+
+    def compare_unit(self, unit):
+        if (self.svlan == unit.svlan) and (unit.cvlan != '') and (unit.vlan_mapping == 'pop') \
+                and (self.bd_id == unit.bd_id) and unit.bd_id != '' and unit.service == 'vpls':
+            return 1
+        elif (self.svlan != unit.svlan) and (unit.cvlan == '') and (unit.vlan_mapping == 'push') \
+                and (self.bd_id == unit.bd_id) and unit.bd_id != '' and unit.service == 'vpls':
+            return 2
+        elif (self.svlan == unit.svlan) and (unit.svlan != '') and (self.cvlan == unit.cvlan) \
+                and (unit.ip != '') and (unit.bd_id == '') and ((unit.service == 'L3') or (unit.service == 'L3VPN')) \
+                and self.vrf_name == unit.vrf_name:
+            return 3
+        elif self.unit1 == unit.unit1:
+            return 4
+        else:
+            return 5
 
     @staticmethod
-    def insert_list_ip(info,hostname):
+    def insert_list_ip(info, hostname):
         temp_list_ip = info[13].split('/')
         list_ip = list(map(lambda x: UNIT_IP(Utils.convert_ip(x)), temp_list_ip))
-        #print 'Kiem tra:',list_ip
+        # print 'Kiem tra:',list_ip
 
-        if info[30]!='':
+        if info[30] != '':
             temp_list_group = info[30].split('/')
             temp_list_vip = info[31].split('/')
             temp_list_pri = info[32].split('/')
             temp_list_holdtime = info[33].split('/')
             temp_list_track = info[34].split('/')
             temp_list_reduce = info[35].split('/')
-            #if info[0] == 2642:
-                #print temp_list_group,temp_list_vip,temp_list_pri,temp_list_holdtime,temp_list_track,temp_list_reduce
+            # if info[0] == 2642:
+            # print temp_list_group,temp_list_vip,temp_list_pri,temp_list_holdtime,temp_list_track,temp_list_reduce
             for item_vrrp in temp_list_group:
                 temp_vrrp_group = VRRP()
                 temp_vrrp_group.group_id = item_vrrp
                 temp_list_vip_filter = list(filter(lambda x: x.startswith(item_vrrp + '_'), temp_list_vip))
-                #print ' Gia tri vip filter:',temp_list_vip_filter
-                #print temp_list_vip_filter
-                #print temp_list_vip_filter
+                # print ' Gia tri vip filter:',temp_list_vip_filter
+                # print temp_list_vip_filter
+                # print temp_list_vip_filter
                 if len(temp_list_vip_filter) > 0:
-                    #print 'Dang xu ly:',temp_list_vip_filter[0].split('_')[1]
+                    # print 'Dang xu ly:',temp_list_vip_filter[0].split('_')[1]
                     temp_vrrp_group.vip.append(temp_list_vip_filter[0].split('_')[1])
-                #print 'Da xu ly:',temp_vrrp_group.group_id,temp_vrrp_group.vip
+                # print 'Da xu ly:',temp_vrrp_group.group_id,temp_vrrp_group.vip
                 temp_list_pri_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_pri))
-                if len(temp_list_pri_filter)>0:
+                if len(temp_list_pri_filter) > 0:
                     temp_vrrp_group.vrrp_pri = temp_list_pri_filter[0].split('_')[1]
                 else:
                     temp_vrrp_group.vrrp_pri = '100'
@@ -594,29 +697,29 @@ class UNIT:
                     temp_vrrp_group.vrrp_holdtime = '0'
                 temp_list_track_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_track))
                 if len(temp_list_track_filter) > 0:
-                    temp_vrrp_group.vrrp_track_intf = IFD.find_mx_ifd(temp_list_track_filter[0].split('_')[1],hostname)
+                    temp_vrrp_group.vrrp_track_intf = IFD.find_mx_ifd(temp_list_track_filter[0].split('_')[1], hostname)
                 temp_list_reduce_filter = list(filter(lambda x: x.startswith(item_vrrp), temp_list_reduce))
                 if len(temp_list_reduce_filter) > 0:
                     temp_vrrp_group.vrrp_reduce = temp_list_track_filter[0].split('_')[1]
                 for item_ip in list_ip:
                     ip = netaddr.IPNetwork(item_ip.ip)
-                    #print 'IP:',ip
-                    #print 'Network:',ip.network
-                    #print 'Broadcast:',ip.broadcast
-                    #temp_vrrp_group.showdata()
-                    #print temp_list_vip
+                    # print 'IP:',ip
+                    # print 'Network:',ip.network
+                    # print 'Broadcast:',ip.broadcast
+                    # temp_vrrp_group.showdata()
+                    # print temp_list_vip
                     for item_vip in temp_list_vip_filter:
 
                         if (netaddr.IPAddress(item_vip.split('_')[1]) >= netaddr.IPAddress(ip.network)) \
-                                and (netaddr.IPAddress(item_vip.split('_')[1])< ip.broadcast):
+                                and (netaddr.IPAddress(item_vip.split('_')[1]) < ip.broadcast):
                             item_ip.vrrp_group.append(temp_vrrp_group)
-                            #print item_ip.ip
-                            #item_ip.vrrp_group
+                            # print item_ip.ip
+                            # item_ip.vrrp_group
 
-           # for item_ip in list_ip:
-                #print item_ip.ip
-                #for item_group in item_ip.vrrp_group:
-                    #item_group.showdata()
+        # for item_ip in list_ip:
+        # print item_ip.ip
+        # for item_group in item_ip.vrrp_group:
+        # item_group.showdata()
         return list_ip
 
     def get_bd_id_vlan(self, db, cursor, bd_id, hostname):
@@ -628,7 +731,7 @@ class UNIT:
                 self.flag_bdid = True
 
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             db.rollback()
 
     def get_spi_spo(self, list_unit_vlan_policer):
@@ -638,7 +741,7 @@ class UNIT:
                     self.service_pol_in = unit_vlan_policer.service_pol_in
                 if self.service_pol_out == '':
                     self.service_pol_out = unit_vlan_policer.service_pol_out
-            #print ("unit_vlan: " + str(self.unit) + " spi_vlan: " + self.service_pol_in +
+            # print ("unit_vlan: " + str(self.unit) + " spi_vlan: " + self.service_pol_in +
             #       " spo_vlan: " + self.service_pol_out)
 
     def get_dhcpGW_Vlan_Unit(self, lst_dhcp_relay):
@@ -669,8 +772,8 @@ class UNIT:
             else:
                 print("list_unit_remote is not in service l2circuit and vpls")
         except MySQLdb.Error as e:
-            print (e)
-            print (" in_list_unit_remote")
+            print(e)
+            print(" in_list_unit_remote")
             UNIT.db.rollback()
 
     def get_list_unit_remote_helper(self, hostname, list_vc_bk_vc):
@@ -680,9 +783,9 @@ class UNIT:
                 bk_vc_id = element[1]
                 if bk_vc_id > 0:
                     sql_1 = "select Hostname, BD_ID, IFL from l2vpn " \
-                        "where Hostname like '%s' and Hostname != '%s' " \
-                        "and (VC_ID = '%s' or BK_vc_id = '%s' or VC_ID = '%s' or BK_vc_id = '%s') " \
-                        % (hostname[0:3] + '%', hostname, vc, vc, bk_vc_id, bk_vc_id)
+                            "where Hostname like '%s' and Hostname != '%s' " \
+                            "and (VC_ID = '%s' or BK_vc_id = '%s' or VC_ID = '%s' or BK_vc_id = '%s') " \
+                            % (hostname[0:3] + '%', hostname, vc, vc, bk_vc_id, bk_vc_id)
                 else:
                     sql_1 = "select Hostname, BD_ID, IFL from l2vpn " \
                             "where Hostname like '%s' and Hostname != '%s' " \
@@ -717,13 +820,13 @@ class UNIT:
                          unit_rmt.vlan_translate, unit_rmt.service) = row_tmp
                         self.list_unit_remote.append(unit_rmt)
         except MySQLdb.Error as e:
-            print (e)
-            print ("in list unit remote helper")
+            print(e)
+            print("in list unit remote helper")
             UNIT.db.rollback()
 
     def showdata(self):
         attrs = vars(self)
-        print (','.join("%s: %s" % item for item in attrs.items()))
+        print(','.join("%s: %s" % item for item in attrs.items()))
 
 
 class UNIT_IP:
@@ -732,10 +835,9 @@ class UNIT_IP:
         self.vrrp_group = []
 
 
-
 class VRRP:
     def __init__(self):
-        self.group_id =''
+        self.group_id = ''
         self.vip = []
         self.vrrp_pri = ''
         self.vrrp_holdtime = 0
@@ -744,4 +846,4 @@ class VRRP:
 
     def showdata(self):
         attrs = vars(self)
-        print (','.join("%s: %s" % item for item in attrs.items()))
+        print(','.join("%s: %s" % item for item in attrs.items()))
