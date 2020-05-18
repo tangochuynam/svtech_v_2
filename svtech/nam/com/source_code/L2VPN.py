@@ -117,7 +117,7 @@ class L2VPN:
                 sql_query = " select Peer, VC_ID, UPE, BK_Peer, BK_vc_id from l2vpn " \
                             "where Name = '%s' and HostName = '%s' " \
                             % (vsi.name, hostname)
-                print('line 120 in l2vpn.py:',sql_query)
+                print('line 120 in l2vpn.py:', sql_query)
                 L2VPN.cursor.execute(sql_query)
                 list_rows = L2VPN.cursor.fetchall()
                 # get list of interface_unit from IFL table and IFD table

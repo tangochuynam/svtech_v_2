@@ -117,7 +117,7 @@ class Main:
             l2vpn_list_local = L2VPN.query_vlan_local(hostname, list_bd_id_ip)
 
             #bo sung ngay 22/9
-            list_ccc = L2VPN.query_data_ccc(hostname,list_ifd,router.type)
+            list_ccc = L2VPN.query_data_ccc(hostname, list_ifd, router.type)
             # RouteMap
             lst_route_map = RouteMap.query_data(hostname)
             lst_extcomm_bgp = RouteMap.get_lst_extcomm_bgp(hostname)
