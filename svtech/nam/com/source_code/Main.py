@@ -113,7 +113,7 @@ class Main:
             neighbor_list = NEIGHBOR.query_data(hostname, list_ifd)
             # L2VPN
             l2vpn_list = L2VPN.query_data(hostname, list_ifd, router.type)
-            #print('line 118 in main.py:',l2vpn_list)
+            #print('line 116 in main.py:',list_ifd)
             l2vpn_list_local = L2VPN.query_vlan_local(hostname, list_bd_id_ip)
 
             #bo sung ngay 22/9
