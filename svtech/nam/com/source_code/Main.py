@@ -17,6 +17,7 @@ from StaticRoute import StaticRoute
 import time
 import random
 from pathlib import Path
+from Utils import Utils
 
 class Main:
 
@@ -27,6 +28,7 @@ class Main:
         self.cursor = Database.cursor
         self.path_input = Path(__file__).parent.parent.joinpath("configuration_template")
         self.path_output = Path(__file__).parent.parent.joinpath("configuration_created")
+        self.path_mxifd_csv = Path(__file__).parent.parent.joinpath("mxifd_csv")
 
     def main(self):
 
@@ -54,7 +56,7 @@ class Main:
         #'THA02SSN','LSN99LLI'
         #'LSN00LLI','THA00THA'
         for hostname in ['HDG03NGG']:
-            print ("hostname: " + hostname)
+            print("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
             router.get_hostname_type()
@@ -95,6 +97,9 @@ class Main:
             #print irb_df_dict
             list_ifd = IFD.query_data_new(hostname, flag_create_notation, cfg_router.dict_policy_map, dict_policy_map_used,
                                       irb_df_dict)
+
+            # save list_ifd
+            Utils.save_mxifds(list_ifd, self.path_mxifd_csv.joinpath(hostname + ".csv"))
             #list static route global 18/9
             list_static_global = StaticRoute.query_data(hostname, '')
             # L3VPN

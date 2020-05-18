@@ -1,5 +1,6 @@
 import IFL
 import netaddr as net
+import pandas as pd
 
 
 class Utils:
@@ -72,3 +73,17 @@ class Utils:
         else:
             name_out = classifier.strip()
         return name_out
+
+    @staticmethod
+    def save_mxifds(mxifds, f_path):
+        mxifd_unit1 = []
+        oldifl_unit = []
+        for mxifd in mxifds:
+            for unit in mxifd.list_unit:
+                for old_ifl in unit.old_ifl:
+                    mxifd_unit1.append(mxifd.mx_ifd + "." + str(unit.unit1))
+                    oldifl_unit.append(old_ifl)
+        out_dict = {"MX_IFD.UNIT1": mxifd_unit1, "OLD_IFL.UNIT": oldifl_unit}
+        df = pd.DataFrame(out_dict)
+        df.to_csv(f_path, index=False)
+        print("write mxifds successfully")

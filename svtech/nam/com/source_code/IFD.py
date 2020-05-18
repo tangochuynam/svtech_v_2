@@ -167,11 +167,11 @@ class IFD:
                         if (case == 1) or (case == 2) or (case == 3):
                             case_match = True
                             if case == 1:
-                                added_u.cvlan_list += ' '+ " ".join(unit_curr.cvlan.split(','))
+                                added_u.cvlan_list += ' ' + " ".join(unit_curr.cvlan.split(','))
                                 added_u.cvlan += ", " + unit_curr.cvlan
                                 print("case 1")
                             if case == 2:
-                                added_u.svlan_list += ' '+" ".join(unit_curr.svlan.split(','))
+                                added_u.svlan_list += ' ' + " ".join(unit_curr.svlan.split(','))
                                 added_u.svlan += ", " + unit_curr.svlan
                                 print("case 2")
                             if case == 3:
