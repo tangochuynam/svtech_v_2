@@ -132,7 +132,6 @@ class IFD:
                     ifd.insert_unit(dict_policy_map, dict_policy_map_used, irb_df_dict)
                     list_mxifd.append(ifd)
 
-
             # convert list_ifd to new list_ifd with new flex_service (relation parent_link in this list)
             list_mxifd = list(map(lambda x: x.get_new_ifd_with_flex_service(list_mxifd), list_mxifd))
             return list_mxifd
@@ -168,12 +167,12 @@ class IFD:
                         if (case == 1) or (case == 2) or (case == 3):
                             case_match = True
                             if case == 1:
+                                added_u.cvlan_list += ' '+ " ".join(unit_curr.cvlan.split(','))
                                 added_u.cvlan += ", " + unit_curr.cvlan
-                                added_u.cvlan_list = ' '.join(added_u.cvlan.split(','))
                                 print("case 1")
                             if case == 2:
+                                added_u.svlan_list += ' '+" ".join(unit_curr.svlan.split(','))
                                 added_u.svlan += ", " + unit_curr.svlan
-                                added_u.svlan_list = ' '.join(added_u.svlan.split(','))
                                 print("case 2")
                             if case == 3:
                                 added_u.ip.extend(unit_curr.ip)
@@ -265,76 +264,76 @@ class IFD:
             print(e)
             IFD.db.rollback()
 
-    # @staticmethod
-    # def convert_info_unit(info, ifd):
-    #
-    #     ip_helper_tmp = info[19]
-    #     if (ifd.name != 'Vlanif') | (ip_helper_tmp == ''):
-    #         unit = UNIT(info[0], info[1], info[2], info[3], info[4], info[5],
-    #                     info[6], info[7], info[8], info[9], info[10], info[11], info[12])
-    #         # convert ip
-    #         network = info[13]
-    #         if network != '':
-    #             if network == 'unnumbered lo0':
-    #                 unit.ip = '1.1.1.1/31'
-    #                 print('unnumbered lo0: ' + unit.ip)
-    #             else:
-    #                 if 'lo0' not in network:
-    #                     host, subnet = network.strip().split()
-    #                     subnet_mask = host + '/' + subnet
-    #                     # print("subnet_mask: " + subnet_mask)
-    #                     network_ipv4 = ipaddr.IPv4Network(subnet_mask)
-    #                     # print("network: " + str(network_ipv4))
-    #                     unit.ip = str(network_ipv4)
-    #                     # check ',' and '-' in svlan and cvlan
-    #                 else:
-    #                     unit.ip = network
-    #         svlan_temp = info[3]
-    #         cvlan_temp = info[4]
-    #         if (',' in svlan_temp) | ('-' in svlan_temp):
-    #             unit.svlan_list = ' '.join(svlan_temp.split(','))
-    #         if (',' in cvlan_temp) | ('-' in cvlan_temp):
-    #             unit.cvlan_list = ' '.join(cvlan_temp.split(','))
-    #
-    #         if (ifd.name != 'Vlan') & (ifd.name != 'Loopback') & (unit.bd_id != ''):
-    #             if unit.bd_id in IFD.list_bd_id_ip:
-    #                 unit.flag_bdid = False
-    #             if unit.unit1 == 525:
-    #                 print("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
-    #
-    #         # add more attribute
-    #         unit.split_horizon = info[14]
-    #         unit.ff_in = info[15]
-    #         unit.mpls = info[16]
-    #         unit.admin_status = info[17]
-    #         unit.switch_mode = info[18]
-    #         unit.vrf_name = info[20]
-    #         unit.igmp = info[21]
-    #         unit.vsi_encap = info[22]
-    #         unit.unit = info[23]
-    #         unit.ff_out = info[24]
-    #         unit.dhcp_gw = info[25]
-    #         unit.classifier = Utils.change_name_classifier(info[26])
-    #         unit.df_classifier = Utils.change_name_classifier(info[27])
-    #         unit.arp_exp = info[28] / 60
-    #         if (unit.ip == '') and (info[29]):
-    #             unit.trust_1p = info[29]
-    #         if unit.bd_id in ifd.list_bd_id_dup:
-    #             unit.bd_dup_notation = True
-    #         # only get the unit from IFD.list_unit_vlan_policer
-    #         unit.get_spi_spo(IFD.list_unit_vlan_policer)
-    #         # unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
-    #         # flag_create_notation is used or not
-    #         if IFD.flag_create_notation:
-    #             unit.get_list_unit_remote(ifd.name, IFD.hostname)
-    #         # set flag_core for ifd
-    #         if unit.service == 'CORE':
-    #             if ifd.flag_core == False:
-    #                 ifd.flag_core = True
-    #         # print ("ifd: " + ifd.name + " mx_ifd: " + ifd.mx_ifd + " unit: " + str(unit.unit1) + " spi_in: " + unit.service_pol_in + " spo: " + unit.service_pol_out )
-    #         return unit
-    #     else:
-    #         return None
+    @staticmethod
+    def convert_info_unit(info, ifd):
+
+        ip_helper_tmp = info[19]
+        if (ifd.name != 'Vlanif') | (ip_helper_tmp == ''):
+            unit = UNIT(info[0], info[1], info[2], info[3], info[4], info[5],
+                        info[6], info[7], info[8], info[9], info[10], info[11], info[12])
+            # convert ip
+            network = info[13]
+            if network != '':
+                if network == 'unnumbered lo0':
+                    unit.ip = '1.1.1.1/31'
+                    print('unnumbered lo0: ' + unit.ip)
+                else:
+                    if 'lo0' not in network:
+                        host, subnet = network.strip().split()
+                        subnet_mask = host + '/' + subnet
+                        # print("subnet_mask: " + subnet_mask)
+                        network_ipv4 = ipaddr.IPv4Network(subnet_mask)
+                        # print("network: " + str(network_ipv4))
+                        unit.ip = str(network_ipv4)
+                        # check ',' and '-' in svlan and cvlan
+                    else:
+                        unit.ip = network
+            svlan_temp = info[3]
+            cvlan_temp = info[4]
+            if (',' in svlan_temp) | ('-' in svlan_temp):
+                unit.svlan_list = ' '.join(svlan_temp.split(','))
+            if (',' in cvlan_temp) | ('-' in cvlan_temp):
+                unit.cvlan_list = ' '.join(cvlan_temp.split(','))
+
+            if (ifd.name != 'Vlan') & (ifd.name != 'Loopback') & (unit.bd_id != ''):
+                if unit.bd_id in IFD.list_bd_id_ip:
+                    unit.flag_bdid = False
+                if unit.unit1 == 525:
+                    print("unit_525: " + str(unit.bd_id) + " flag_bd_id: " + str(unit.flag_bdid))
+
+            # add more attribute
+            unit.split_horizon = info[14]
+            unit.ff_in = info[15]
+            unit.mpls = info[16]
+            unit.admin_status = info[17]
+            unit.switch_mode = info[18]
+            unit.vrf_name = info[20]
+            unit.igmp = info[21]
+            unit.vsi_encap = info[22]
+            unit.unit = info[23]
+            unit.ff_out = info[24]
+            unit.dhcp_gw = info[25]
+            unit.classifier = Utils.change_name_classifier(info[26])
+            unit.df_classifier = Utils.change_name_classifier(info[27])
+            unit.arp_exp = info[28] / 60
+            if (unit.ip == '') and (info[29]):
+                unit.trust_1p = info[29]
+            if unit.bd_id in ifd.list_bd_id_dup:
+                unit.bd_dup_notation = True
+            # only get the unit from IFD.list_unit_vlan_policer
+            unit.get_spi_spo(IFD.list_unit_vlan_policer)
+            # unit.get_dhcpGW_Vlan_Unit(IFD.lst_dhcp_relay)
+            # flag_create_notation is used or not
+            if IFD.flag_create_notation:
+                unit.get_list_unit_remote(ifd.name, IFD.hostname)
+            # set flag_core for ifd
+            if unit.service == 'CORE':
+                if ifd.flag_core == False:
+                    ifd.flag_core = True
+            # print ("ifd: " + ifd.name + " mx_ifd: " + ifd.mx_ifd + " unit: " + str(unit.unit1) + " spi_in: " + unit.service_pol_in + " spo: " + unit.service_pol_out )
+            return unit
+        else:
+            return None
 
     @staticmethod
     def find_mx_ifd(info, hostname):

@@ -25,14 +25,15 @@ class INTERFACE_UNIT:
         try:
             sql_query = ("select ifd.MX_IFD, ifl.Unit1, ifl.BD_ID, ifl.Stitching, ifl.IP from ifl inner join ifd "
                          "on ifl.IFD = IFD.Name and ifl.Hostname = ifd.Hostname "
-                         "where ifl.Hostname = '%s' and IFL.BD_ID = '%s' ") % \
+                         "where ifl.Hostname = '%s' and IFL.BD_ID = '%s'and ifd.MX_IFD!=''") % \
                         (hostname, bd_id)
             INTERFACE_UNIT.cursor.execute(sql_query)
             list_rows = INTERFACE_UNIT.cursor.fetchall()
+            #print('line 32 in ifl.py:',list_rows,bd_id)
             data = INTERFACE_UNIT.extract_data(list_rows, list_ifd)
             return data
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             INTERFACE_UNIT.db.rollback()
 
     @staticmethod
@@ -95,8 +96,9 @@ class INTERFACE_UNIT:
         mx_ifd_temp = x[0]
         unit1 = x[1]
         # print ("type: " +str(type(x)))
-        #print ("mx_ifd: " + mx_ifd_temp)
+        #print ("line 98 in ifl.py mx_ifd: " + mx_ifd_temp+ str(unit1))
         ifd_filter = list(filter(lambda ifd: ifd.mx_ifd == mx_ifd_temp, list_ifd))
+        #print("line 100 in ifl.py ifd_filter: ",ifd_filter)
         if ifd_filter[0].flag_default & ifd_filter[0].flag_default_vpls:
             unit1 = 0
         return INTERFACE_UNIT(x[0], unit1, x[2], x[3])
