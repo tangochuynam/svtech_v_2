@@ -53,7 +53,7 @@ class Main:
         check_continute = 'y'
         #'THA02SSN','LSN99LLI'
         #'LSN00LLI','THA00THA'
-        for hostname in ['HDG03NGG']:
+        for hostname in ['HDG01TNC']:
             print ("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
