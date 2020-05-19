@@ -164,6 +164,8 @@ class IFD:
                 else:
                     for added_u in self.list_unit:
                         case = added_u.compare_unit(unit_curr)
+
+                        print('line 168 in ifd.py added_u:',added_u.ifd,'.',added_u.unit1,'unit_curr:',unit_curr.ifd,'.',unit_curr.unit1)
                         if (case == 1) or (case == 2) or (case == 3):
                             case_match = True
                             if case == 1:
@@ -647,10 +649,10 @@ class UNIT:
         self.old_ifl = []
 
     def compare_unit(self, unit):
-        if (self.svlan == unit.svlan) and (unit.cvlan != '') and (unit.vlan_mapping == 'pop') \
+        if (self.svlan == unit.svlan) and (unit.cvlan != '') and (self.cvlan != '') and (unit.vlan_mapping == 'pop') \
                 and (self.bd_id == unit.bd_id) and unit.bd_id != '' and unit.service == 'vpls':
             return 1
-        elif (self.svlan != unit.svlan) and (unit.cvlan == '') and (unit.vlan_mapping == 'push') \
+        elif (self.svlan != unit.svlan) and (unit.cvlan == '') and (self.cvlan == '') and (unit.vlan_mapping == 'push') \
                 and (self.bd_id == unit.bd_id) and unit.bd_id != '' and unit.service == 'vpls':
             return 2
         elif (self.svlan == unit.svlan) and (unit.svlan != '') and (self.cvlan == unit.cvlan) \
