@@ -99,7 +99,7 @@ class Main:
                                       irb_df_dict)
 
             # save list_ifd
-            Utils.save_mxifds(list_ifd, self.path_mxifd_csv.joinpath(hostname + ".csv"))
+            # Utils.save_mxifds(list_ifd, self.path_mxifd_csv.joinpath(hostname + ".csv"))
             #list static route global 18/9
             list_static_global = StaticRoute.query_data(hostname, '')
             # L3VPN
