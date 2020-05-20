@@ -48,12 +48,12 @@ class INTERFACE_UNIT:
             #print("ifd: " + ifd + " unit: " + unit)
             sql = ("select ifd.MX_IFD, ifl.Unit1 from ifl inner join ifd "
                    "on ifl.IFD = ifd.Name and ifl.Hostname = ifd.Hostname "
-                   "where ifl.Hostname='%s' and ifl.IFD='%s' and ifl.Unit = '%s';") % \
+                   "where ifl.Hostname='%s' and ifl.IFD='%s' and ifl.Unit = '%s' and ifd.MX_IFD!='';") % \
                   (hostname, ifd, unit)
             #print 'Sql:',sql
             INTERFACE_UNIT.cursor.execute(sql)
             row = INTERFACE_UNIT.cursor.fetchall()
-            #print row
+            #print('line 56 in ifl.py:',row,ifd)
             if len(row) > 0:
                 mx_ifd_temp = row[0][0]
                 #print 'MX-IFD-TEMP:',ifd,mx_ifd_temp
@@ -75,7 +75,7 @@ class INTERFACE_UNIT:
         try:
             sql = ("select ifd.MX_IFD, ifl.Unit1, ifl.IP_helper from ifl inner join ifd "
                    "on ifl.IFD = ifd.Name and ifl.Hostname = ifd.Hostname "
-                   "where ifl.Hostname='%s' and ifl.VRF_Name='%s' and ifd.MX_IFD !='';") % \
+                   "where ifl.Hostname='%s' and ifl.VRF_Name='%s' and ifd.MX_IFD !='' group by ifd.MX_IFD;") % \
                   (hostname, vrf_name)
             INTERFACE_UNIT.cursor.execute(sql)
             list_rows = INTERFACE_UNIT.cursor.fetchall()

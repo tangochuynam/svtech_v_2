@@ -156,27 +156,27 @@ class IFD:
             for row in rows:
                 case_match = False
                 unit_curr = IFD.convert_info_unit1(row, self, dict_policy_map, dict_policy_map_used, irb_df_dict)
-                # print("unit_curr UNIT1: " + str(unit_curr.unit1))
-                # print("ifd name: " + self.name)
+                #print("line 160 in ifd.py ifd name: " + self.name)
+                #print("line 160 in ifd.py unit_curr UNIT1: " + str(unit_curr.unit1))
                 # time.sleep(1)
                 if len(self.list_unit) == 0:
                     self.list_unit.append(unit_curr)
                 else:
                     for added_u in self.list_unit:
                         case = added_u.compare_unit(unit_curr)
-                        if (case == 1) or (case == 2) or (case == 3) or (case == 4) or (case == 5) or (case == 6):
+                        if (case == 1) or (case == 2) or (case == 3) or (case == 4) or (case == 5) or (case == 6) or (case == 7):
                             case_match = True
                             if case == 1:
                                 added_u.cvlan += ", " + unit_curr.cvlan
-                                added_u.cvlan_list += ' ' + " ".join(unit_curr.cvlan.split(','))
+                                added_u.cvlan_list = " ".join(added_u.cvlan.split(','))
                                 print("case 1")
                             if case == 2:
                                 pass
                                 print("case 2")
                             if case == 3:
                                 added_u.svlan += ", " + unit_curr.svlan
-                                added_u.svlan_list += ' ' + " ".join(unit_curr.svlan.split(','))
-                                print("case 3")
+                                added_u.svlan_list = " ".join(added_u.svlan.split(','))
+                                print("case 3",added_u.svlan,'svlan-list:', added_u.svlan_list)
                             if case == 4:
                                 pass
                                 print("case 4")
@@ -184,14 +184,17 @@ class IFD:
                                 pass
                                 print("case 5")
                             if case == 6:
+                                pass
+                                print("case 6")
+                            if case == 7:
                                 added_u.ip.extend(unit_curr.ip)
-                                print("case 5")
+                                print("case 7")
                             if unit_curr.description != '':
                                 added_u.description += ", " + unit_curr.description
                             added_u.old_ifl.extend(unit_curr.old_ifl)
                             break
-                        if case == 7:
-                            print("case 7")
+                        if case == 8:
+                            print("case 8")
                             case_match = True
                             # time.sleep(1)
                             # print("unit1 added_u: " + str(added_u.unit1))
@@ -200,11 +203,11 @@ class IFD:
                             self.list_unit.append(unit_curr)
                             self.counter += 1
                             break
-                        if case == 8:
+                        if case == 9:
                             continue
                     if not case_match:
                         # if unit_curr is not in case 1,2,3,4 for all old unit, add this new unit to list_unit
-                        print("case 9")
+                        print("case 10")
                         self.list_unit.append(unit_curr)
 
     def insert_unit(self, dict_policy_map, dict_policy_map_used, irb_df_dict):
@@ -677,14 +680,19 @@ class UNIT:
                 and (self.bd_id == unit.bd_id) and unit.bd_id != '' and unit.service == 'vpls' \
                 and (self.cvlan == '') and (self.vlan_mapping == ''):
             case_num = 5
+        elif (self.svlan == unit.svlan) and (unit.cvlan == '') and (unit.vlan_mapping == 'pop') \
+                and (self.bd_id == unit.bd_id) and unit.bd_id != '' and unit.service == 'vpls' \
+                and (self.cvlan == '') and (self.vlan_mapping == 'pop'):
+            case_num = 6
         elif (self.svlan == unit.svlan) and (unit.svlan != '') and (self.cvlan == unit.cvlan) \
                 and (unit.ip != '') and (unit.bd_id == '') and ((unit.service == 'L3') or (unit.service == 'L3VPN')) \
                 and self.vrf_name == unit.vrf_name:
-            case_num = 6
-        elif self.unit1 == unit.unit1:
             case_num = 7
-        else:
+
+        elif self.unit1 == unit.unit1:
             case_num = 8
+        else:
+            case_num = 9
         return case_num
 
     @staticmethod

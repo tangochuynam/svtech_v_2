@@ -129,7 +129,8 @@ class CFGROUTER:
             '''
             sql = "select ifd.MX_IFD, ifl.Unit1, ifd.Name from ifl inner join ifd " \
                   "on ifl.Hostname = ifd.Hostname and ifl.IFD = ifd.Name " \
-                  "where (ifl.Service = 'CORE' or ifl.Service = 'L3' )and ifl.PIM = '1' and ifl.Hostname = '%s' " % CFGROUTER.hostname
+                  "where (ifl.Service = 'CORE' or ifl.Service = 'L3' )and ifl.PIM = '1' and ifl.Hostname = '%s' group by ifd.MX_IFD"\
+                  % CFGROUTER.hostname
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_core_pim = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))
@@ -175,13 +176,13 @@ class CFGROUTER:
         try:
             sql = "select ifd.MX_IFD, ifl.Unit1, ifd.Name from ifl inner join ifd " \
                   "on ifl.Hostname = ifd.Hostname and ifl.IFD = ifd.Name " \
-                  "where ifl.Hostname = '%s' and IGMP = 1 " % CFGROUTER.hostname
+                  "where ifl.Hostname = '%s' and IGMP = 1 group by ifd.MX_IFD" % CFGROUTER.hostname
             CFGROUTER.cursor.execute(sql)
             list_rows = CFGROUTER.cursor.fetchall()
             self.list_igmp_ifl = list(map(lambda x: MXIFD_UNIT(x[0] if x[0] is not None else x[2], x[1]), list_rows))
 
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             CFGROUTER.db.rollback()
 
     def get_as_number(self):
