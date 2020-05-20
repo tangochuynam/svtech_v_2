@@ -25,11 +25,13 @@ class INTERFACE_UNIT:
         try:
             sql_query = ("select ifd.MX_IFD, ifl.Unit1, ifl.BD_ID, ifl.Stitching, ifl.IP from ifl inner join ifd "
                          "on ifl.IFD = IFD.Name and ifl.Hostname = ifd.Hostname "
-                         "where ifl.Hostname = '%s' and IFL.BD_ID = '%s'and ifd.MX_IFD!=''") % \
+                         "where ifl.Hostname = '%s' and IFL.BD_ID = '%s'and ifd.MX_IFD!=''"
+                         "group by ifd.MX_IFD") % \
                         (hostname, bd_id)
             INTERFACE_UNIT.cursor.execute(sql_query)
             list_rows = INTERFACE_UNIT.cursor.fetchall()
-            #print('line 32 in ifl.py:',list_rows,bd_id)
+            #if bd_id == 'VLAN-2501':
+            #    print('line 32 in ifl.py:',list_rows,bd_id)
             data = INTERFACE_UNIT.extract_data(list_rows, list_ifd)
             return data
         except MySQLdb.Error as e:
