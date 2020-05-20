@@ -55,7 +55,7 @@ class Main:
         check_continute = 'y'
         #'THA02SSN','LSN99LLI'
         #'LSN00LLI','THA00THA'
-        for hostname in ['HDG03NGG']:
+        for hostname in ['HDG03TKY']:
             print("hostname: " + hostname)
             router = Router()
             router.hostname = hostname
@@ -99,7 +99,7 @@ class Main:
                                       irb_df_dict)
 
             # save list_ifd
-            # Utils.save_mxifds(list_ifd, self.path_mxifd_csv.joinpath(hostname + ".csv"))
+            Utils.save_mxifds(list_ifd, self.path_mxifd_csv.joinpath(hostname + ".csv"))
             #list static route global 18/9
             list_static_global = StaticRoute.query_data(hostname, '')
             # L3VPN
