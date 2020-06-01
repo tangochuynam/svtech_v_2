@@ -215,6 +215,7 @@ class L2VPN:
             if len(list_rows)>0:
                 list_ccc = list(map(lambda x: CCC(name=x[0]),list_rows))
                 for item_ccc in list_ccc:
+                    print('line 218 in l2vpn.py:',hostname,item_ccc.name)
                     sql = "select ifd.MX_IFD,ifl.Unit1 from ifl "\
                           "inner join ifd on ifl.Hostname=ifd.Hostname and ifl.IFD = ifd.Name "\
                           "where ifl.hostname='%s' and ifl.Service like '%s' and  ifl.CCC_Name='%s'" %\
