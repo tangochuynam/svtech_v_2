@@ -169,25 +169,49 @@ class IFD:
                             if case == 1:
                                 added_u.cvlan += ", " + unit_curr.cvlan
                                 added_u.cvlan_list = " ".join(added_u.cvlan.split(','))
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
+                                if added_u.ff_out=='' and unit_curr.ff_out!='':
+                                    added_u.ff_out=unit_curr.ff_out
                                 print("case 1")
                             if case == 2:
                                 pass
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
+                                if added_u.ff_out=='' and unit_curr.ff_out!='':
+                                    added_u.ff_out=unit_curr.ff_out
                                 print("case 2")
                             if case == 3:
                                 added_u.svlan += ", " + unit_curr.svlan
                                 added_u.svlan_list = " ".join(added_u.svlan.split(','))
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
                                 print("case 3",added_u.svlan,'svlan-list:', added_u.svlan_list)
                             if case == 4:
                                 pass
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
                                 print("case 4")
                             if case == 5:
                                 pass
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
+                                if added_u.ff_out=='' and unit_curr.ff_out!='':
+                                    added_u.ff_out=unit_curr.ff_out
                                 print("case 5")
                             if case == 6:
                                 pass
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
+                                if added_u.ff_out=='' and unit_curr.ff_out!='':
+                                    added_u.ff_out=unit_curr.ff_out
                                 print("case 6")
                             if case == 7:
                                 added_u.ip.extend(unit_curr.ip)
+                                if added_u.ff_in=='' and unit_curr.ff_in!='':
+                                    added_u.ff_in=unit_curr.ff_in
+                                if added_u.ff_out=='' and unit_curr.ff_out!='':
+                                    added_u.ff_out=unit_curr.ff_out
                                 print("case 7")
                             if unit_curr.description != '':
                                 added_u.description += ", " + unit_curr.description
