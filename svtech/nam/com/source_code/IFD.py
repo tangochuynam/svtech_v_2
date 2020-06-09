@@ -146,8 +146,8 @@ class IFD:
               "MTU, BD_ID, IP, Split_horizon, FF_in, " \
               "MPLS, Admin_status, Switch_mode, IP_helper, " \
               "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
-              "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
-              "VRRP_reduce,Trust_upstream,Routing_type " \
+              "Classifier, DF_classifier,ARP_exp,Trust_8021p, VRRP_group,VRRP_vip, VRRP_prio, VRRP_delay, VRRP_track," \
+              "VRRP_reduce, Trust_upstream, Routing_type, Stitching, CCC_Name " \
               "from ifl " \
               "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
         IFD.cursor.execute(sql)
@@ -246,7 +246,7 @@ class IFD:
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
                   "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
                   "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
-                  "VRRP_reduce,Trust_upstream,Routing_type " \
+                  "VRRP_reduce,Trust_upstream,Routing_type, Stitching, CCC_Name" \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
@@ -374,7 +374,6 @@ class IFD:
     @staticmethod
     def find_mx_ifd(info, hostname):
         try:
-
             sql = "select IFD.mx_ifd,IFL.Unit1 from ifl inner join ifd on ifd.name=ifl.ifd and ifd.hostname=ifl.hostname " \
                   "where (left('%s',position('.' in '%s')-1)= ifl.IFD) and " \
                   "(right('%s',length('%s')-position('.' in '%s')) = " \
@@ -487,7 +486,8 @@ class IFD:
             unit.igmp = info[21]
             unit.vsi_encap = info[22]
             unit.unit = info[23]
-
+            unit.stitching = info[38]
+            unit.ccc_name = info[39]
             # 2020-05 new attribute
             unit.old_ifl.append(ifd.name + "." + str(unit.unit))
 
@@ -633,7 +633,7 @@ class UNIT:
 
     def __init__(self, unit1=0, description="", service="", svlan="", cvlan="", vlan_mapping="",
                  vlan_translate="", vlan_map_svlan="", vlan_map_cvlan="",
-                 service_pol_in="", service_pol_out="", mtu=0, bd_id=""):
+                 service_pol_in="", service_pol_out="", mtu=0, bd_id="", stitching="", ccc_name=''):
         self.unit1 = unit1  # type int
         if '"' in description:
             self.description = ''.join(e for e in description.split('"'))
@@ -680,6 +680,8 @@ class UNIT:
         self.bd_dup_notation = False
         self.trust_upstream = False
         self.routing_type = ''
+        self.stitching = stitching
+        self.ccc_name = ccc_name
         self.old_ifl = []
 
     def compare_unit(self, unit):

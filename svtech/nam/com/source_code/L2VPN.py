@@ -81,6 +81,8 @@ class L2VPN:
     list_bd_id_ip = []
     router_type = ""
     hostname = ""
+    service_name = 'l2vpn'
+    service_ccc = 'ccc'
 
     def __init__(self, name = "", vsi = "", mtu = 0, encap = '',
                  loop_detect = False, admin_status = True, description = '', isolated = False):
@@ -121,7 +123,9 @@ class L2VPN:
                 L2VPN.cursor.execute(sql_query)
                 list_rows = L2VPN.cursor.fetchall()
                 # get list of interface_unit from IFL table and IFD table
-                list_rows_ifl = INTERFACE_UNIT.query_data(hostname, vsi.name, L2VPN.list_ifd)
+                # --- update 2020 not get from DB, get from list_ifd
+                # list_rows_ifl = INTERFACE_UNIT.query_data(hostname, vsi.name, L2VPN.list_ifd)
+                list_rows_ifl = INTERFACE_UNIT.get_service_list(L2VPN.list_ifd, L2VPN.service_name, vsi.name)
                 data = vsi.extract_data(list_rows, list_rows_ifl)
                 #for int_unit in list_rows_ifl:
                 #    if int_unit.mx_ifd == 'irb':
@@ -149,7 +153,7 @@ class L2VPN:
             list_ccc = L2VPN.get_list_ccc(hostname)
             return list_ccc
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             # rollback in case there is any error
             L2VPN.db.rollback()
 
@@ -157,18 +161,18 @@ class L2VPN:
     def query_vlan_local(hostname, list_bd_id_ip):
         try:
             L2VPN.list_bd_id_ip = list_bd_id_ip
-            # print ("coming into SQL")
             list_l2vpn_local = []
             list_bdid_local = L2VPN.get_list_bdid_local(hostname)
             #print ("length bdid local: " + str(len(list_bdid_local)))
             for bdid in list_bdid_local:
                # print ("bdid: " + bdid)
-                list_rows_ifl = INTERFACE_UNIT.query_data(hostname, bdid, L2VPN.list_ifd)
+               #  list_rows_ifl = INTERFACE_UNIT.query_data(hostname, bdid, L2VPN.list_ifd)
+                list_rows_ifl = INTERFACE_UNIT.get_service_list(L2VPN.list_ifd, L2VPN.service_name, bdid)
                 l2_vpn_local = L2VPN.extract_data_local(list_rows_ifl, hostname, bdid)
                 list_l2vpn_local.append(l2_vpn_local)
             return list_l2vpn_local
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             # rollback in case there is any error
             L2VPN.db.rollback()
 
@@ -185,7 +189,7 @@ class L2VPN:
             list_bdid_local = L2VPN.cursor.fetchall()
             return list(map(lambda x: x[0], list_bdid_local))
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             L2VPN.db.rollback()
 
     @staticmethod
@@ -208,22 +212,23 @@ class L2VPN:
     def get_list_ccc(hostname):
         try:
             sql_query = "select CCC_Name from ifl where hostname = '%s' " \
-                        "and Service like '%s' group by CCC_Name" % (hostname,'ccc%')
+                        "and Service like '%s' group by CCC_Name" % (hostname, 'ccc%')
             L2VPN.cursor.execute(sql_query)
             # handle the data
             list_rows = L2VPN.cursor.fetchall()
-            if len(list_rows)>0:
-                list_ccc = list(map(lambda x: CCC(name=x[0]),list_rows))
+            if len(list_rows) > 0:
+                list_ccc = list(map(lambda x: CCC(name=x[0]), list_rows))
                 for item_ccc in list_ccc:
-                    print('line 218 in l2vpn.py:',hostname,item_ccc.name)
-                    sql = "select ifd.MX_IFD,ifl.Unit1 from ifl "\
-                          "inner join ifd on ifl.Hostname=ifd.Hostname and ifl.IFD = ifd.Name "\
-                          "where ifl.hostname='%s' and ifl.Service like '%s' and  ifl.CCC_Name='%s'" %\
-                         (hostname, 'ccc%', item_ccc.name)
-                    L2VPN.cursor.execute(sql)
-                    list_rows1 = L2VPN.cursor.fetchall()
-                    print (list_rows1)
-                    if len(list_rows1)>0:
+                    print('line 218 in l2vpn.py:', hostname, item_ccc.name)
+                    # sql = "select ifd.MX_IFD,ifl.Unit1 from ifl "\
+                    #       "inner join ifd on ifl.Hostname=ifd.Hostname and ifl.IFD = ifd.Name "\
+                    #       "where ifl.hostname='%s' and ifl.Service like '%s' and  ifl.CCC_Name='%s'" %\
+                    #      (hostname, 'ccc%', item_ccc.name)
+                    # L2VPN.cursor.execute(sql)
+                    # list_rows1 = L2VPN.cursor.fetchall()
+                    list_rows1 = INTERFACE_UNIT.get_service_list(L2VPN.list_ifd, L2VPN.service_ccc, item_ccc.name)
+                    print(list_rows1)
+                    if len(list_rows1) > 0:
                         item_ccc.list_intf_ccc = list(map(lambda x: x[0]+'.'+str(x[1]) ,list_rows1))
             else:
                 list_ccc = []
@@ -239,7 +244,7 @@ class L2VPN:
         l2_vpn.name = bd_id
         l2_vpn.bd_id = bd_id
         # get flag_irb from list_interface_unit
-        list_irb = list(map(lambda x: x.mx_ifd, l2_vpn.interface_unit))
+        # list_irb = list(map(lambda x: x.mx_ifd, l2_vpn.interface_unit))
         if l2_vpn.bd_id in L2VPN.list_bd_id_ip:
             l2_vpn.flag_irb = True
         # handle special case to get flag_pim
@@ -309,7 +314,8 @@ class L2VPN:
             f.write(f_txt)
         print("write successful")
 
+
 class CCC:
-    def __init__(self,name=''):
-        self.name=name
+    def __init__(self, name=''):
+        self.name = name
         self.list_intf_ccc = []
