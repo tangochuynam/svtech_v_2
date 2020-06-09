@@ -33,6 +33,7 @@ class INTERFACE_UNIT:
             #if bd_id == 'VLAN-2501':
             #    print('line 32 in ifl.py:',list_rows,bd_id)
             data = INTERFACE_UNIT.extract_data(list_rows, list_ifd)
+            #print('line 36 in ifl.py:',data)
             return data
         except MySQLdb.Error as e:
             print(e)
