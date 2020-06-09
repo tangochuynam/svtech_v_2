@@ -534,7 +534,7 @@ class IFD:
             elif IFD.router_type == 'ASR9k':
                 name = "Bundle-Ether" + self.parent_link
             elif IFD.router_type == 'HW':
-                print("type parent link: " + str(type(self.parent_link)) + " value: " + str(self.parent_link))
+                #print("type parent link: " + str(type(self.parent_link)) + " value: " + str(self.parent_link))
                 name = "Eth-Trunk" + self.parent_link
             # print ("name:" + name)
             parent_of_ifd = list(filter(lambda ifd: name == ifd.name, list_ifd))
