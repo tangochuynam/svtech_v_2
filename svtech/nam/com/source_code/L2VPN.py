@@ -22,6 +22,7 @@ class NEIGHBOR:
     db = Database.db
     cursor = Database.cursor
     list_ifd = []
+    service_name = 'neighbor'
 
     def __init__(self, name, bk_peer, mtu, vc_id, description, encap, bk_vc_id):
         self.name = name
@@ -58,7 +59,7 @@ class NEIGHBOR:
             neighbor.description = neighbor.description.lstrip()
             if '.' in row[5]:
                 ifd, unit = row[5].split('.')
-                neighbor.interface_name = INTERFACE_UNIT.query_data_new_ifl(hostname, ifd.strip(), unit.strip(), NEIGHBOR.list_ifd)
+                neighbor.interface_name = INTERFACE_UNIT.query_data_new_ifl(ifd.strip(), unit.strip(), NEIGHBOR.list_ifd, NEIGHBOR.service_name)
             if neighbor.interface_name.startswith(('ae', 'xe', 'ge')):
                 list_neighbor.append(neighbor)
         return list_neighbor

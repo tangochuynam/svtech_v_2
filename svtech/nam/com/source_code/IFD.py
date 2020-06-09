@@ -109,7 +109,7 @@ class IFD:
             mxifds = list(map(lambda x: x[0], mx_ifd_rows))
             list_mxifd = []
             for mxifd in mxifds:
-                print("line 111 in ifd.py, mxifd: " + str(mxifd))
+                print("mxifd: " + str(mxifd))
                 sql = "select Name, Description, MTU, Flex_service, Parent_link, AE_type, AE_mode, Wanphy, " \
                       "Speed, MX_IFD, Type, Admin_status, Native_vlan " \
                       "from ifd " \
@@ -157,7 +157,7 @@ class IFD:
                 case_match = False
                 unit_curr = IFD.convert_info_unit1(row, self, dict_policy_map, dict_policy_map_used, irb_df_dict)
                 #print("line 160 in ifd.py ifd name: " + self.name)
-                #print("line 160 in ifd.py unit_curr UNIT1: " + self.name +'-'+ str(unit_curr.unit1)+'BDID:'+unit_curr.bd_id)
+                #print("line 160 in ifd.py unit_curr UNIT1: " + str(unit_curr.unit1))
                 # time.sleep(1)
                 if len(self.list_unit) == 0:
                     self.list_unit.append(unit_curr)
@@ -246,7 +246,7 @@ class IFD:
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
                   "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
                   "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
-                  "VRRP_reduce,Trust_upstream,Routing_type, Stitching, CCC_Name " \
+                  "VRRP_reduce,Trust_upstream,Routing_type, Stitching, CCC_Name" \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
@@ -534,9 +534,9 @@ class IFD:
             elif IFD.router_type == 'ASR9k':
                 name = "Bundle-Ether" + self.parent_link
             elif IFD.router_type == 'HW':
-                #print("type parent link: " + str(type(self.parent_link)) + " value: " + str(self.parent_link))
+                print("type parent link: " + str(type(self.parent_link)) + " value: " + str(self.parent_link))
                 name = "Eth-Trunk" + self.parent_link
-            print ("line 539 in ifd.py name:" + name)
+            # print ("name:" + name)
             parent_of_ifd = list(filter(lambda ifd: name == ifd.name, list_ifd))
             self.flex_service = parent_of_ifd[0].flex_service
         return self
