@@ -43,15 +43,16 @@ class INTERFACE_UNIT:
         return list(map(lambda x: INTERFACE_UNIT.change_unit1_interface_unit(x, list_ifd), list_rows))
 
     @staticmethod
-    def query_data_new_ifl(hostname, ifd, unit, list_ifd):
+    def query_data_new_ifl(ifd, unit, list_ifd, service_name):
         try:
             #print("ifd: " + ifd + " unit: " + unit)
-            sql = ("select ifd.MX_IFD, ifl.Unit1 from ifl inner join ifd "
-                   "on ifl.IFD = ifd.Name and ifl.Hostname = ifd.Hostname "
-                   "where ifl.Hostname='%s' and ifl.IFD='%s' and ifl.Unit = '%s' and ifd.MX_IFD!='';") % \
-                  (hostname, ifd, unit)
-            INTERFACE_UNIT.cursor.execute(sql)
-            row = INTERFACE_UNIT.cursor.fetchall()
+            # sql = ("select ifd.MX_IFD, ifl.Unit1 from ifl inner join ifd "
+            #        "on ifl.IFD = ifd.Name and ifl.Hostname = ifd.Hostname "
+            #        "where ifl.Hostname='%s' and ifl.IFD='%s' and ifl.Unit = '%s' and ifd.MX_IFD!='';") % \
+            #       (hostname, ifd, unit)
+            # INTERFACE_UNIT.cursor.execute(sql)
+            # row = INTERFACE_UNIT.cursor.fetchall()
+            row = INTERFACE_UNIT.get_service_list(list_ifd, service_name, (ifd, unit))
             if len(row) > 0:
                 mx_ifd_temp = row[0][0]
                 #print ("name_mx_ifd: " + mx_ifd_temp)
@@ -114,13 +115,20 @@ class INTERFACE_UNIT:
             for ifd in list_ifd:
                 units = list(filter(lambda unit: unit.bd_id == info, ifd.list_unit))
                 service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1, unit.bd_id, unit.stitching, unit.ip), units)))
+            service_list = INTERFACE_UNIT.extract_data(service_list, list_ifd)
         elif service == 'ccc':
             for ifd in list_ifd:
                 units = list(filter(lambda unit: unit.service.startswith("ccc") and unit.ccc_name == info, ifd.list_unit))
                 service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1), units)))
+        elif service == 'neighbor':
+            for ifd in list_ifd:
+                units = list(filter(lambda unit: unit.ifd == info[0] and unit.unit == info[1], ifd.list_unit))
+                service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1), units)))
         else:
             raise ValueError(f"service: {service} is not defined")
         return service_list
+
+
 
 
 class IFL:
