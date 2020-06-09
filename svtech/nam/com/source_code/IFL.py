@@ -50,13 +50,10 @@ class INTERFACE_UNIT:
                    "on ifl.IFD = ifd.Name and ifl.Hostname = ifd.Hostname "
                    "where ifl.Hostname='%s' and ifl.IFD='%s' and ifl.Unit = '%s' and ifd.MX_IFD!='';") % \
                   (hostname, ifd, unit)
-            #print 'Sql:',sql
             INTERFACE_UNIT.cursor.execute(sql)
             row = INTERFACE_UNIT.cursor.fetchall()
-            #print('line 56 in ifl.py:',row,ifd)
             if len(row) > 0:
                 mx_ifd_temp = row[0][0]
-                #print 'MX-IFD-TEMP:',ifd,mx_ifd_temp
                 #print ("name_mx_ifd: " + mx_ifd_temp)
                 ifd_filter = list(filter(lambda x: x.mx_ifd == mx_ifd_temp,  list_ifd))
                 #print 'Gia tri IFD_FILTER:',ifd_filter
@@ -67,7 +64,7 @@ class INTERFACE_UNIT:
             else:
                 return ''
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             INTERFACE_UNIT.db.rollback()
 
     @staticmethod
@@ -81,7 +78,7 @@ class INTERFACE_UNIT:
             list_rows = INTERFACE_UNIT.cursor.fetchall()
             return list(map(lambda x: Utils.Utils.convert(x), list_rows))
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             INTERFACE_UNIT.db.rollback()
 
 
@@ -104,6 +101,26 @@ class INTERFACE_UNIT:
         if ifd_filter[0].flag_default & ifd_filter[0].flag_default_vpls:
             unit1 = 0
         return INTERFACE_UNIT(x[0], unit1, x[2], x[3])
+
+    @staticmethod
+    def get_service_list(list_ifd, service, info):
+        service_list = []
+        if service == 'vrf':
+            for ifd in list_ifd:
+                units = list(filter(lambda unit: unit.vrf_name == info, ifd.list_unit))
+                service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1, unit.ip_helper), units)))
+            service_list = list(map(lambda x: Utils.Utils.convert(x), service_list))
+        elif service == 'l2vpn':
+            for ifd in list_ifd:
+                units = list(filter(lambda unit: unit.bd_id == info, ifd.list_unit))
+                service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1, unit.bd_id, unit.stitching, unit.ip), units)))
+        elif service == 'ccc':
+            for ifd in list_ifd:
+                units = list(filter(lambda unit: unit.service.startswith("ccc") and unit.ccc_name == info, ifd.list_unit))
+                service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1), units)))
+        else:
+            raise ValueError(f"service: {service} is not defined")
+        return service_list
 
 
 class IFL:

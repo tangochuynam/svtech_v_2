@@ -51,7 +51,7 @@ class VRFIE:
                 if vrf.imp_extcom is not None:
                     list_rows_df_imp = vrf.imp_extcom.split()
                 else:
-                    list_rows_df_imp=[]
+                    list_rows_df_imp = []
                 # select export map data from pair (hostname and vrf_name)
                 sql_query_exp = "select Name, Seq, ACL, Protocol, Route_filter, Action from vrf_ie " \
                                 "where Hostname = '%s' and VRF_Name = '%s' " \
@@ -63,7 +63,7 @@ class VRFIE:
                 list_vrfie.append(data)
             return list_vrfie
         except MySQLdb.Error as e:
-            print (e)
+            print(e)
             # rollback in case there is any error
             VRFIE.db.rollback()
 

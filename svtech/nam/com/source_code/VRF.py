@@ -145,6 +145,7 @@ class VRF:
     db = Database.db
     cursor = Database.cursor
     hostname = ""
+    service_name = "vrf"
 
     def __init__(self):
         self.name = ""
@@ -209,7 +210,7 @@ class VRF:
 
 
     @staticmethod
-    def query_data(hostname):
+    def query_data(hostname, list_ifd):
         try:
             VRF.hostname = hostname
             print ("coming into SQL")
@@ -218,7 +219,7 @@ class VRF:
             VRF.cursor.execute(sql_query)
             # handle the data
             list_rows = VRF.cursor.fetchall()
-            list_service = VRF.extract_data(list_rows)
+            list_service = VRF.extract_data(list_rows, list_ifd)
             return list_service
         except MySQLdb.Error as e:
             print (e)
@@ -226,7 +227,7 @@ class VRF:
             VRF.db.rollback()
 
     @staticmethod
-    def extract_data(list_rows):
+    def extract_data(list_rows, list_ifd):
         list_service = []
         print("number of vrf:" + str(len(list_rows)))
 
@@ -250,7 +251,8 @@ class VRF:
             data.exp_extcom = row[13]
             data.imp_extcom = row[14]
             data.description = row[15]
-            data.interface_unit = INTERFACE_UNIT.query_list_new_ifl_vrf(data.hostname, data.name)
+            # data.interface_unit = INTERFACE_UNIT.query_list_new_ifl_vrf(data.hostname, data.name)
+            data.interface_unit = INTERFACE_UNIT.get_service_list(list_ifd, VRF.service_name, data.name)
             if data.dhcp_server:
                 data.list_dhcp = VRF.get_list_dhcp(data.name)
             if data.dhcp_relay:
