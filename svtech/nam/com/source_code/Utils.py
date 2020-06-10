@@ -68,6 +68,10 @@ class Utils:
             name_out = 'H2'
         elif classifier.startswith('ef'):
             name_out = 'EF'
+        elif classifier.startswith('af1'):
+            name_out = 'L2'
+        elif classifier.startswith('cs'):
+            name_out = 'NC'
         elif classifier.startswith(('default', 'be')):
             name_out = 'BE'
         else:

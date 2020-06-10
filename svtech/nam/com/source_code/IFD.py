@@ -711,7 +711,8 @@ class UNIT:
                 and (self.cvlan == '') and (self.vlan_mapping == 'pop'):
             case_num = 6
         elif (self.svlan == unit.svlan) and (unit.svlan != '') and (self.cvlan == unit.cvlan) \
-                and (unit.ip != '') and (unit.bd_id == '') and ((unit.service == 'L3') or (unit.service == 'L3VPN')) \
+                and (unit.ip != '') and (unit.bd_id == '') and ((unit.service == 'L3') or (unit.service == 'L3VPN') or \
+                                                                (unit.service == 'l3') or (unit.service == 'l3vpn')) \
                 and self.vrf_name == unit.vrf_name:
             case_num = 7
 
