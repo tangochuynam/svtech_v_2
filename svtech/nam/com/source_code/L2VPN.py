@@ -45,14 +45,14 @@ class NEIGHBOR:
                   "from l2vpn where Hostname = '%s' and Type = 'l2circuit'" % (hostname)
             NEIGHBOR.cursor.execute(sql)
             list_rows = NEIGHBOR.cursor.fetchall()
-            list_neighbor = NEIGHBOR.extract_data(list_rows, hostname)
+            list_neighbor = NEIGHBOR.extract_data(list_rows)
             return list_neighbor
         except MySQLdb.Error as e:
             print (e)
             NEIGHBOR.db.rollback()
 
     @staticmethod
-    def extract_data(list_rows, hostname):
+    def extract_data(list_rows):
         list_neighbor = []
         for row in list_rows:
             neighbor = NEIGHBOR(row[0], row[1], row[2], row[3], row[4], row[6], row[7])

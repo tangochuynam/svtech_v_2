@@ -3,7 +3,6 @@ import MySQLdb
 from Database import Database
 import Utils
 
-
 class INTERFACE_UNIT:
 
     db = Database.db
@@ -127,8 +126,6 @@ class INTERFACE_UNIT:
         else:
             raise ValueError(f"service: {service} is not defined")
         return service_list
-
-
 
 
 class IFL:
