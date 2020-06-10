@@ -85,6 +85,9 @@ class Utils:
                     if "vlanif" in old_ifl.lower() and "." in old_ifl:
                         old_ifl = "".join(old_ifl.split("."))
                     oldifl_unit.append(old_ifl)
+        # adding special case 1 element "lo0.0" --- "Loop0"
+        mxifd_unit1.append("lo0.0")
+        oldifl_unit.append("Loop0")
         out_dict = {"MX_IFD.UNIT1": mxifd_unit1, "OLD_IFL.UNIT": oldifl_unit}
         df = pd.DataFrame(out_dict)
         df.to_csv(f_path, index=False)
