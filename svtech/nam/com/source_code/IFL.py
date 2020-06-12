@@ -122,7 +122,8 @@ class INTERFACE_UNIT:
                 service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1), units)))
         elif service == 'neighbor':
             for ifd in list_ifd:
-                units = list(filter(lambda unit: unit.ifd == info[0] and unit.unit == info[1], ifd.list_unit))
+                #units = list(filter(lambda unit: unit.ifd == info[0] and unit.unit == info[1], ifd.list_unit))
+                units = list(filter(lambda unit: unit.old_ifl[0] == info[0]+'.'+str(info[1]), ifd.list_unit))
                 service_list.extend(list(map(lambda unit: (ifd.mx_ifd, unit.unit1), units)))
         else:
             raise ValueError(f"service: {service} is not defined")
