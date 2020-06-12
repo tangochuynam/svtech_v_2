@@ -246,7 +246,7 @@ class IFD:
                   "MPLS, Admin_status, Switch_mode, IP_helper, " \
                   "VRF_Name, IGMP, VSI_encap, Unit, FF_out, DHCP_GW, " \
                   "Classifier, DF_classifier,ARP_exp,Trust_8021p,VRRP_group,VRRP_vip,VRRP_prio,VRRP_delay,VRRP_track," \
-                  "VRRP_reduce,Trust_upstream,Routing_type, Stitching, CCC_Name" \
+                  "VRRP_reduce,Trust_upstream,Routing_type, Stitching, CCC_Name " \
                   "from ifl " \
                   "where Hostname = '%s' and IFD = '%s'" % (IFD.hostname, self.name)
             IFD.cursor.execute(sql)
