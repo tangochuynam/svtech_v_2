@@ -33,7 +33,15 @@ class ACL:
             sql = "select ACL from vrf_ie where Hostname = '%s' and ACL!='' group by ACL" % ACL.hostname
             ACL.cursor.execute(sql)
             list_rows = ACL.cursor.fetchall()
-            return list(map(lambda x: x[0], list_rows))
+            list_rows=list(map(lambda x: x[0], list_rows))
+            for row in list_rows:
+                if '//' in row:
+                    list_rows.remove(row)
+                    for item in row.split('//'):
+                        if not item in list_rows:
+                            list_rows.append(item)
+            #print('line 42 in acl.py list_rows:',list_rows)
+            return list_rows
         except MySQLdb.Error as e:
             print (e)
             ACL.db.rollback()
@@ -56,6 +64,13 @@ class ACL:
             host, subnet = ip_temp.strip().split()
             if subnet=='0':
                 subnet ='32'
+            subnet_mask = host + '/' + subnet
+            network_ipv4 = ip.ip_network(unicode(subnet_mask))
+            ip_temp = str(network_ipv4)
+            return ip_temp
+        elif (ip_temp != '') and ('-' in ip_temp):
+            host = ip_temp.strip().split()[0]
+            subnet = ip_temp.strip().split()[1]
             subnet_mask = host + '/' + subnet
             network_ipv4 = ip.ip_network(unicode(subnet_mask))
             ip_temp = str(network_ipv4)

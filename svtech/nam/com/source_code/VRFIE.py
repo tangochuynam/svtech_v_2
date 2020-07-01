@@ -79,19 +79,20 @@ class VRFIE:
             for row in list_rows_exp:
                 psterm = PSTERM()
                 psterm.term_name = row[0] + "_" + str(row[1])
-                temp_acl = row[2]
-                sql = "select Prefix_Source from acl_detail " \
-                      "where Hostname = '%s' and Name = '%s' " \
-                      % (hostname, temp_acl)
-                VRFIE.cursor.execute(sql)
-                temp_list_row = VRFIE.cursor.fetchall()
-                if len(temp_list_row) > 0:
-                    for item_prefix in temp_list_row:
-                        if '-' not in item_prefix[0]:
-                            psterm.acl.append(item_prefix[0].split()[0]+'/'+item_prefix[0].split()[1]+' exact')
-                        else:
+                temp_acl = row[2].split('//')
+                for each_temp_acl in temp_acl:
+                    sql = "select Prefix_Source from acl_detail " \
+                            "where Hostname = '%s' and Name = '%s' " \
+                            % (hostname, each_temp_acl)
+                    VRFIE.cursor.execute(sql)
+                    temp_list_row = VRFIE.cursor.fetchall()
+                    if len(temp_list_row) > 0:
+                        for item_prefix in temp_list_row:
+                            if '-' not in item_prefix[0]:
+                                psterm.acl.append(item_prefix[0].split()[0]+'/'+item_prefix[0].split()[1]+' exact')
+                            else:
                             #print 'Test result item_prefix:',item_prefix
-                            psterm.acl.append(item_prefix[0].split()[0] + '/' + item_prefix[0].split()[1]+
+                                psterm.acl.append(item_prefix[0].split()[0] + '/' + item_prefix[0].split()[1]+
                                               ' prefix-length-range /'+item_prefix[0].split()[2].split('-')[0]+'-/'+
                                               item_prefix[0].split()[2].split('-')[1])
                 psterm.protocol = row[3]

@@ -266,7 +266,7 @@ class POLICYMAP:
             list_rows = POLICYMAP.cursor.fetchall()
             list_mf = []
             if len(list_rows) > 0:
-                # print 'MF:',list_rows
+                #print('MF:',list_rows)
                 list_mf = list(map(lambda x: MF.insert_mf(x), list_rows))
             return list_mf
         except MySQLdb.Error as e:
@@ -322,6 +322,7 @@ class FF:
               "from acl_detail where hostname = '%s' and Name = '%s' " % (hostname, info)
         FF.cursor.execute(sql)
         list_rows = FF.cursor.fetchall()
+        print('line 325 in CFGROUTER.py list_rows:',list_rows)
         tmp_acl_list = list(map(lambda x: FF.insert_acl(x), list_rows))
         return tmp_acl_list
 
