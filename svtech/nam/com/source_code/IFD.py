@@ -107,6 +107,7 @@ class IFD:
             mx_ifd_rows = IFD.cursor.fetchall()
             # print ("length_row: " + str(len(list_rows)))
             mxifds = list(map(lambda x: x[0], mx_ifd_rows))
+
             list_mxifd = []
             for mxifd in mxifds:
                 print("mxifd: " + str(mxifd))
@@ -117,6 +118,7 @@ class IFD:
 
                 IFD.cursor.execute(sql)
                 rows = IFD.cursor.fetchall()
+                #print("line 120 in ifd.py rows:",rows," mxifd:", mxifd)
                 if len(rows) > 1:
                     ifd = IFD(mxifd, const.description, const.mtu, const.flex_service, const.parent_link,
                               const.ae_type, const.ae_mode, const.wanphy, const.speed, mxifd,
@@ -157,7 +159,7 @@ class IFD:
                 case_match = False
                 unit_curr = IFD.convert_info_unit1(row, self, dict_policy_map, dict_policy_map_used, irb_df_dict)
                 #print("line 160 in ifd.py ifd name: " + self.name)
-                #print("line 160 in ifd.py unit_curr UNIT1: " + str(unit_curr.unit1))
+                #print("line 160 in ifd.py unit_curr UNIT1: " + str(unit_curr.unit1) + unit_curr.ff_in)
                 # time.sleep(1)
                 if len(self.list_unit) == 0:
                     self.list_unit.append(unit_curr)
@@ -233,6 +235,7 @@ class IFD:
                         # if unit_curr is not in case 1,2,3,4 for all old unit, add this new unit to list_unit
                         print("case 10")
                         self.list_unit.append(unit_curr)
+
 
     def insert_unit(self, dict_policy_map, dict_policy_map_used, irb_df_dict):
         try:
@@ -387,70 +390,6 @@ class IFD:
             IFD.db.rollback()
 
     @staticmethod
-    def insert_policy_map_used(tmp_unit, dict_policy_map, dict_policy_map_used):
-        tmp_policy_map = POLICYMAP()
-        if tmp_unit.service == 'vpls':
-            # print 'Tao policy map cho vpls',tmp_unit.unit1 , tmp_unit.ifd
-            # print tmp_unit.ff_in, (tmp_unit.ff_in in dict_policy_map) , (tmp_unit.ff_in not in dict_policy_map_used)
-            if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/vpls') not in dict_policy_map_used):
-                # print 'Dang policy map cho vpls'
-                tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
-                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
-                tmp_policy_map.df_lp = 'low'
-                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
-                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
-                tmp_policy_map.family_type = 'vpls'
-                dict_policy_map_used[tmp_unit.ff_in + '/vpls'] = tmp_policy_map
-            if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out + '/vpls') not in dict_policy_map_used):
-                tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
-                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
-                tmp_policy_map.df_lp = 'low'
-                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
-                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
-                tmp_policy_map.family_type = 'vpls'
-                dict_policy_map_used[tmp_unit.ff_out + '/vpls'] = tmp_policy_map
-        elif tmp_unit.service == 'l2circuit':
-            # print 'Tao policy map cho l2circuit',tmp_unit.unit1 , tmp_unit.ifd
-            if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/l2circuit') not in dict_policy_map_used):
-                # print 'Dang tao policy map cho l2circuit'
-                tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
-                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
-                tmp_policy_map.df_lp = 'low'
-                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
-                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
-                tmp_policy_map.family_type = 'l2circuit'
-                dict_policy_map_used[tmp_unit.ff_in] = tmp_policy_map
-            if (tmp_unit.ff_out in dict_policy_map) and (tmp_unit.ff_out not in dict_policy_map_used):
-                tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
-                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
-                tmp_policy_map.df_lp = 'low'
-                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
-                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
-                tmp_policy_map.family_type = 'l2circuit'
-                dict_policy_map_used[tmp_unit.ff_out + '/l2circuit'] = tmp_policy_map
-        else:
-            # if tmp_unit.ff_in!='':
-            #    print('Line 244 in ifd.py:', tmp_unit.unit1, tmp_unit.ifd,tmp_unit.ff_in,dict_policy_map[tmp_unit.ff_in])
-            if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/inet') not in dict_policy_map_used):
-                print('Dang tao policy map cho l3')
-                tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
-                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
-                tmp_policy_map.df_lp = 'low'
-                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
-                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
-                tmp_policy_map.family_type = 'inet'
-                dict_policy_map_used[tmp_unit.ff_in + '/inet'] = tmp_policy_map
-            if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out + '/inet') not in dict_policy_map_used):
-                tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
-                tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
-                tmp_policy_map.df_lp = 'low'
-                tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
-                tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
-                tmp_policy_map.family_type = 'inet'
-                tmp_policy_map.showdata()
-                dict_policy_map_used[tmp_unit.ff_out + '/inet'] = tmp_policy_map
-
-    @staticmethod
     def convert_info_unit1(info, ifd, dict_policy_map, dict_policy_map_used, irb_df_dict):
 
         ip_helper_tmp = info[19]
@@ -501,7 +440,7 @@ class IFD:
                 #    print irb_df_dict
                 #    print ifd.name, unit.unit
                 unit.df_classifier = Utils.change_name_classifier(irb_df_dict[unit.unit])
-            unit.arp_exp = info[28] / 60
+            unit.arp_exp = int(info[28] / 60)
             if (unit.ip == '') and (info[29]):
                 unit.trust_1p = info[29]
             # print 'info[36]:',info[36]
@@ -519,7 +458,7 @@ class IFD:
             if unit.service == 'CORE':
                 if ifd.flag_core == False:
                     ifd.flag_core = True
-            IFD.insert_policy_map_used(unit, dict_policy_map, dict_policy_map_used)
+            insert_policy_map_used(unit, dict_policy_map, dict_policy_map_used)
             # print ("ifd: " + ifd.name + " mx_ifd: " + ifd.mx_ifd + " unit: " + str(unit.unit1) + " spi_in: " + unit.service_pol_in + " spo: " + unit.service_pol_out )
             return unit
         else:
@@ -536,7 +475,10 @@ class IFD:
             elif IFD.router_type == 'HW':
                 print("type parent link: " + str(type(self.parent_link)) + " value: " + str(self.parent_link))
                 name = "Eth-Trunk" + self.parent_link
-            # print ("name:" + name)
+            #print("line 542 in ifd.py name:" + self.name)
+            #for ifd in list_ifd:
+            #    print("line 541 in ifd.py ifd:", ifd.name)
+            #print('line 545 in ifd.py current name:',name)
             parent_of_ifd = list(filter(lambda ifd: name == ifd.name, list_ifd))
             self.flex_service = parent_of_ifd[0].flex_service
         return self
@@ -625,6 +567,70 @@ class IFD:
             f_txt = template_env.get_template(file_name).render(interface)
             f.write(f_txt)
         print("write successful")
+
+
+def insert_policy_map_used(tmp_unit, dict_policy_map, dict_policy_map_used):
+    tmp_policy_map = POLICYMAP()
+    if tmp_unit.service == 'vpls':
+        # print 'Tao policy map cho vpls',tmp_unit.unit1 , tmp_unit.ifd
+        # print tmp_unit.ff_in, (tmp_unit.ff_in in dict_policy_map) , (tmp_unit.ff_in not in dict_policy_map_used)
+        if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/vpls') not in dict_policy_map_used):
+            # print 'Dang policy map cho vpls'
+            tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
+            tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+            tmp_policy_map.df_lp = 'low'
+            tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
+            tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
+            tmp_policy_map.family_type = 'vpls'
+            dict_policy_map_used[tmp_unit.ff_in + '/vpls'] = tmp_policy_map
+        if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out + '/vpls') not in dict_policy_map_used):
+            tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
+            tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+            tmp_policy_map.df_lp = 'low'
+            tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
+            tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
+            tmp_policy_map.family_type = 'vpls'
+            dict_policy_map_used[tmp_unit.ff_out + '/vpls'] = tmp_policy_map
+    elif tmp_unit.service == 'l2circuit':
+        # print 'Tao policy map cho l2circuit',tmp_unit.unit1 , tmp_unit.ifd
+        if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/l2circuit') not in dict_policy_map_used):
+            # print 'Dang tao policy map cho l2circuit'
+            tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
+            tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+            tmp_policy_map.df_lp = 'low'
+            tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
+            tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
+            tmp_policy_map.family_type = 'l2circuit'
+            dict_policy_map_used[tmp_unit.ff_in] = tmp_policy_map
+        if (tmp_unit.ff_out in dict_policy_map) and (tmp_unit.ff_out not in dict_policy_map_used):
+            tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
+            tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+            tmp_policy_map.df_lp = 'low'
+            tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
+            tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
+            tmp_policy_map.family_type = 'l2circuit'
+            dict_policy_map_used[tmp_unit.ff_out + '/l2circuit'] = tmp_policy_map
+    else:
+        # if tmp_unit.ff_in!='':
+        #    print('Line 244 in ifd.py:', tmp_unit.unit1, tmp_unit.ifd,tmp_unit.ff_in,dict_policy_map[tmp_unit.ff_in])
+        if (tmp_unit.ff_in in dict_policy_map) and ((tmp_unit.ff_in + '/inet') not in dict_policy_map_used):
+            print('Dang tao policy map cho l3')
+            tmp_policy_map = POLICYMAP(tmp_unit.ff_in)
+            tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+            tmp_policy_map.df_lp = 'low'
+            tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_in].mf_list
+            tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_in].acl_list
+            tmp_policy_map.family_type = 'inet'
+            dict_policy_map_used[tmp_unit.ff_in + '/inet'] = tmp_policy_map
+        if (tmp_unit.ff_out in dict_policy_map) and ((tmp_unit.ff_out + '/inet') not in dict_policy_map_used):
+            tmp_policy_map = POLICYMAP(tmp_unit.ff_out)
+            tmp_policy_map.df_fc = Utils.change_name_classifier(tmp_unit.df_classifier)
+            tmp_policy_map.df_lp = 'low'
+            tmp_policy_map.mf_list = dict_policy_map[tmp_unit.ff_out].mf_list
+            tmp_policy_map.acl_list = dict_policy_map[tmp_unit.ff_out].acl_list
+            tmp_policy_map.family_type = 'inet'
+            tmp_policy_map.showdata()
+            dict_policy_map_used[tmp_unit.ff_out + '/inet'] = tmp_policy_map
 
 
 class UNIT:
