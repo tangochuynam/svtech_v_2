@@ -158,8 +158,6 @@ class IFD:
             for row in rows:
                 case_match = False
                 unit_curr = IFD.convert_info_unit1(row, self, dict_policy_map, dict_policy_map_used, irb_df_dict)
-                #print("line 160 in ifd.py ifd name: " + self.name)
-                #print("line 160 in ifd.py unit_curr UNIT1: " + str(unit_curr.unit1) + unit_curr.ff_in)
                 # time.sleep(1)
                 if len(self.list_unit) == 0:
                     self.list_unit.append(unit_curr)
@@ -175,67 +173,74 @@ class IFD:
                                     added_u.ff_in=unit_curr.ff_in
                                 if added_u.ff_out =='' and unit_curr.ff_out!='':
                                     added_u.ff_out=unit_curr.ff_out
-                                # print("case 1")
+                                #print("line 255 in ifd.py case 1:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if case == 2:
                                 pass
                                 if added_u.ff_in =='' and unit_curr.ff_in!='':
                                     added_u.ff_in = unit_curr.ff_in
                                 if added_u.ff_out =='' and unit_curr.ff_out!='':
                                     added_u.ff_out = unit_curr.ff_out
-                                # print("case 2")
+                                #print("line 255 in ifd.py case 2:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if case == 3:
                                 added_u.svlan += ", " + unit_curr.svlan
                                 added_u.svlan_list = " ".join(added_u.svlan.split(','))
                                 if added_u.ff_in=='' and unit_curr.ff_in!='':
                                     added_u.ff_in=unit_curr.ff_in
-                                # print("case 3", added_u.svlan,'svlan-list:', added_u.svlan_list)
+                                #print("line 255 in ifd.py case 3:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if case == 4:
                                 pass
                                 if added_u.ff_in=='' and unit_curr.ff_in!='':
                                     added_u.ff_in=unit_curr.ff_in
-                                # print("case 4")
+                                #print("line 255 in ifd.py case 4:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if case == 5:
                                 pass
                                 if added_u.ff_in=='' and unit_curr.ff_in!='':
                                     added_u.ff_in=unit_curr.ff_in
                                 if added_u.ff_out=='' and unit_curr.ff_out!='':
                                     added_u.ff_out=unit_curr.ff_out
-                                # print("case 5")
+                                #print("line 255 in ifd.py case 5:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if case == 6:
                                 pass
                                 if added_u.ff_in=='' and unit_curr.ff_in!='':
                                     added_u.ff_in=unit_curr.ff_in
                                 if added_u.ff_out=='' and unit_curr.ff_out!='':
                                     added_u.ff_out=unit_curr.ff_out
-                                # print("case 6")
+                                #print("line 255 in ifd.py case 6:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if case == 7:
                                 added_u.ip.extend(unit_curr.ip)
                                 if added_u.ff_in=='' and unit_curr.ff_in!='':
                                     added_u.ff_in=unit_curr.ff_in
                                 if added_u.ff_out=='' and unit_curr.ff_out!='':
                                     added_u.ff_out=unit_curr.ff_out
-                                # print("case 7")
+                                #print("line 255 in ifd.py case 7:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                             if unit_curr.description != '':
                                 added_u.description += ", " + unit_curr.description
                             added_u.old_ifl.extend(unit_curr.old_ifl)
                             break
-                        if case == 8:
-                            # print("case 8")
-                            case_match = True
-                            # time.sleep(1)
-                            # print("unit1 added_u: " + str(added_u.unit1))
-                            # print("unit1 new unit: " + str(unit_curr.unit1))
-                            added_u.unit1 = self.counter
-                            self.list_unit.append(unit_curr)
-                            self.counter += 1
-                            break
+                        #if case == 8:
+                        #    #print("line 255 in ifd.py case 8:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
+                        #    case_match = True
+                        #    # time.sleep(1)
+                        #    # print("unit1 added_u: " + str(added_u.unit1))
+                        #    # print("unit1 new unit: " + str(unit_curr.unit1))
+                        #    added_u.unit1 = self.counter
+                        #    self.list_unit.append(unit_curr)
+                        #    self.counter += 1
+                        #    break
                         if case == 9:
+                            #if self.name=='Eth-Trunk23':
+                            #    print("line 255 in ifd.py case 9:", unit_curr.unit1, unit_curr.svlan, unit_curr.old_ifl)
                             continue
                     if not case_match:
                         # if unit_curr is not in case 1,2,3,4 for all old unit, add this new unit to list_unit
-                        print("case 10")
+                        #print("line 255 in ifd.py case 10:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                         self.list_unit.append(unit_curr)
 
+            for i in range(0, len(self.list_unit)-1):
+                for j in range(i+1, len(self.list_unit)-1):
+                    if self.list_unit[i].unit1 == self.list_unit[j].unit1:
+                        self.list_unit[j].unit1 = self.counter
+                        self.counter += 1
 
     def insert_unit(self, dict_policy_map, dict_policy_map_used, irb_df_dict):
         try:
@@ -722,8 +727,8 @@ class UNIT:
                 and self.vrf_name == unit.vrf_name:
             case_num = 7
 
-        elif self.unit1 == unit.unit1:
-            case_num = 8
+        #elif self.unit1 == unit.unit1:
+        #    case_num = 8
         else:
             case_num = 9
         return case_num
