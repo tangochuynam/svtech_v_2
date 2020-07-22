@@ -236,8 +236,8 @@ class IFD:
                         #print("line 255 in ifd.py case 10:",unit_curr.unit1,unit_curr.svlan,unit_curr.old_ifl)
                         self.list_unit.append(unit_curr)
 
-            for i in range(0, len(self.list_unit)-1):
-                for j in range(i+1, len(self.list_unit)-1):
+            for i in range(0, len(self.list_unit)):
+                for j in range(i+1, len(self.list_unit)):
                     if self.list_unit[i].unit1 == self.list_unit[j].unit1:
                         self.list_unit[j].unit1 = self.counter
                         self.counter += 1
